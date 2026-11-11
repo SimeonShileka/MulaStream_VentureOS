@@ -1,0 +1,41 @@
+MulaStream VentureOS - Twilio WhatsApp Sandbox
+==============================================
+The website and existing database are preserved. WhatsApp guests use the same Gemini business mentor, but their messages are in a SEPARATE SQLite table and cannot access private website accounts/ventures.
+
+1. Stop VentureOS using Ctrl+C in its terminal. Back up the data folder first if you have important demo accounts.
+2. In your VentureOS folder, open a NEW PowerShell terminal and set the following variables using YOUR actual values from Twilio (never share credentials in chat):
+
+   $env:GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY'
+   $env:TWILIO_ACCOUNT_SID = 'ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+   $env:TWILIO_AUTH_TOKEN = 'YOUR_TWILIO_AUTH_TOKEN'
+   $env:TWILIO_WHATSAPP_FROM = 'whatsapp:+YOUR_TWILIO_SANDBOX_NUMBER'
+   $env:TWILIO_WEBHOOK_URL = 'https://YOUR_NGROK_DOMAIN/api/whatsapp/webhook'
+
+   For example, if your reserved domain is supermom-overnight-verdict.ngrok-free.dev, use:
+   $env:TWILIO_WEBHOOK_URL = 'https://supermom-overnight-verdict.ngrok-free.dev/api/whatsapp/webhook'
+
+3. Install dependencies and launch VentureOS from THIS SAME PowerShell terminal:
+   python -m pip install -r requirements.txt
+   python -m uvicorn app:app --host 127.0.0.1 --port 8501
+
+4. Confirm your local site works at http://127.0.0.1:8501. Open a SECOND terminal and run:
+   ngrok http 8501 --url https://supermom-overnight-verdict.ngrok-free.dev
+   (Use your actual reserved domain. If the command is rejected, see your ngrok dashboard for its exact tunnel command.)
+
+5. In Twilio Console > Messaging > Try it out > Send a WhatsApp message > Sandbox settings,
+   set 'When a message comes in' to:
+   https://YOUR_NGROK_DOMAIN/api/whatsapp/webhook
+   HTTP method: POST. Save.
+
+6. Join the Sandbox from your phone using the join code shown in YOUR Twilio Console if not yet joined, then send:
+   I want to start a shoe business in Namibia with N$10,000.
+
+Expected: the website remains unchanged; Twilio receives an immediate HTTP 200 XML acknowledgement; a separate background job sends the AI response over Twilio REST API. Watch Twilio message logs for errors.
+
+TROUBLESHOOTING
+- 403 Invalid Twilio signature: TWILIO_WEBHOOK_URL must EXACTLY match Twilio's public requested URL, including https, path and query if any. Don't use http://localhost in this variable.
+- 503: missing server environment variables. Stop and restart the server in the same PowerShell where they were defined.
+- Empty/no answer: verify GEMINI_API_KEY, Twilio Account SID, auth token, sandbox sender, Sandbox join, trial limitations and Twilio message logs. The Twilio authentication token is not the ngrok token.
+- 404: check you started the UPDATED project folder and restarted uvicorn.
+- Credentials belong in your local terminal only, not screenshots, GitHub or WhatsApp.
+- A production deployment must add privacy notices, retention limits, abuse controls, and appropriate security review; this is a hackathon demo integration.

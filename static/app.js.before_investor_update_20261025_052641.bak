@@ -1,0 +1,2392 @@
+
+let csrf = '';
+let account = null;
+let ventures = [];
+let selected = null;
+let chatId = null;
+let view = 'overview';
+let chats = [];
+let canReview = false;
+
+const $ = id => document.getElementById(id);
+
+const esc = value =>
+  String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[char]));
+
+async function api(path, method = 'GET', body) {
+  const options = {
+    method,
+    credentials: 'same-origin',
+    headers: { 'x-csrf-token': csrf }
+  };
+
+  if (body !== undefined) {
+    options.headers['content-type'] = 'application/json';
+    options.body = JSON.stringify(body);
+  }
+
+  const response = await fetch('/api' + path, options);
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(
+      typeof data.detail === 'string'
+        ? data.detail
+        : 'Request failed'
+    );
+  }
+
+  return data;
+}
+
+function err(error) {
+  alert(error.message || String(error));
+}
+
+// ============================================================
+// AUTHENTICATION
+// ============================================================
+
+let signingUp = false;
+
+$('switchAuth').onclick = () => {
+  signingUp = !signingUp;
+
+  $('regFields').hidden = !signingUp;
+
+  $('authAction').textContent =
+    signingUp ? 'Create account' : 'Sign in';
+
+  $('switchAuth').textContent =
+    signingUp ? 'Sign in instead' : 'Create an account';
+
+  $('switchText').textContent =
+    signingUp
+      ? 'Already have an account?'
+      : 'New to MulaStream?';
+
+  $('password').autocomplete =
+    signingUp ? 'new-password' : 'current-password';
+};
+
+$('authForm').onsubmit = async event => {
+  event.preventDefault();
+
+  $('authError').textContent = '';
+
+  const credentials = {
+    email: $('email').value,
+    password: $('password').value
+  };
+
+  try {
+    if (signingUp) {
+      await api('/register', 'POST', {
+        ...credentials,
+        name: $('name').value,
+        role: $('role').value
+      });
+
+      $('switchAuth').click();
+
+      $('authError').style.color = '#008767';
+      $('authError').textContent =
+        'Account created. Sign in now.';
+    } else {
+      const result = await api(
+        '/login',
+        'POST',
+        credentials
+      );
+
+      csrf = result.csrf;
+      await boot();
+    }
+  } catch (error) {
+    $('authError').style.color = '#c34141';
+    $('authError').textContent = error.message;
+  }
+};
+
+async function boot() {
+  try {
+    account = await api('/me');
+    csrf = account.csrf;
+
+    $('auth').hidden = true;
+    $('shell').hidden = false;
+
+    $('userLabel').textContent = account.name;
+    $('roleLabel').textContent =
+      account.role === 'admin'
+        ? 'Administrator'
+        : account.role === 'investor'
+          ? 'Investor'
+          : 'Entrepreneur';
+
+    $('avatar').textContent =
+      (account.name || 'U')[0].toUpperCase();
+
+    await refreshAll();
+    await updateRoleNavigation();
+
+    api('/health')
+      .then(data => {
+        $('aiPill').textContent =
+          `AI: ${data.ai} · ${data.model}`;
+      })
+      .catch(() => {});
+  } catch (error) {
+    account = null;
+    $('auth').hidden = false;
+    $('shell').hidden = true;
+  }
+}
+
+async function logout() {
+  try {
+    await api('/logout', 'POST');
+  } catch (error) {
+    console.warn('Logout request:', error.message);
+  }
+
+  csrf = '';
+  account = null;
+  ventures = [];
+  selected = null;
+  chats = [];
+  chatId = null;
+  canReview = false;
+  view = 'overview';
+
+  $('auth').hidden = false;
+  $('shell').hidden = true;
+}
+
+// ============================================================
+// WORKSPACE AND NAVIGATION
+// ============================================================
+
+async function refreshAll() {
+  ventures = await api('/ventures');
+  chats = await api('/chats');
+
+  if (!ventures.some(venture => venture.id === selected)) {
+    selected = ventures[0]?.id || null;
+  }
+
+  $('ventureSelect').innerHTML =
+    ventures.map(venture => `
+      <option value="${venture.id}">
+        ${esc(venture.name)}
+      </option>
+    `).join('') ||
+    '<option value="">No venture yet</option>';
+
+  $('ventureSelect').value = selected || '';
+
+  renderChats();
+  await render();
+}
+
+$('ventureSelect').onchange = event => {
+  selected = Number(event.target.value) || null;
+  render();
+};
+
+document.querySelectorAll('.nav').forEach(button => {
+  button.onclick = () => navigate(button.dataset.view);
+});
+
+function navigate(page) {
+  if (!account) return;
+
+  const founderPages = [
+    'overview',
+    'venture',
+    'evidence',
+    'finance',
+    'incubator',
+    'readiness'
+  ];
+
+  if (
+    founderPages.includes(page) &&
+    account.role !== 'founder'
+  ) {
+    return;
+  }
+
+  if (
+    page === 'admin' &&
+    account.role !== 'admin'
+  ) {
+    return;
+  }
+
+  if (page === 'review' && !canReview) {
+    alert('Reviewer access is required.');
+    return;
+  }
+
+  if (
+    page === 'investors' &&
+    account.role !== 'investor'
+  ) {
+    return;
+  }
+
+  view = page;
+
+  document.querySelectorAll('.nav').forEach(button => {
+    button.classList.toggle(
+      'active',
+      button.dataset.view === page
+    );
+  });
+
+  render();
+}
+
+async function updateRoleNavigation() {
+  const isAdmin = account?.role === 'admin';
+  const isFounder = account?.role === 'founder';
+  const isInvestor = account?.role === 'investor';
+
+  canReview = false;
+
+  try {
+    const status = await api('/review/status');
+    canReview = Boolean(status.allowed);
+  } catch (error) {
+    canReview = false;
+  }
+
+  // Administrator permissions are established by the backend.
+  if (isAdmin) {
+    canReview = true;
+  }
+
+  const founderPages = [
+    'overview',
+    'venture',
+    'evidence',
+    'finance',
+    'incubator',
+    'readiness'
+  ];
+
+  document.querySelectorAll('.nav').forEach(button => {
+    const page = button.dataset.view;
+    let visible = false;
+
+    if (founderPages.includes(page)) {
+      visible = isFounder;
+    } else if (page === 'investors') {
+      visible = isInvestor;
+    } else if (page === 'review') {
+      visible = canReview;
+    } else if (page === 'admin') {
+      visible = isAdmin;
+    } else if (page === 'chat') {
+      visible = true;
+    }
+
+    button.hidden = !visible;
+    button.style.display = visible ? '' : 'none';
+  });
+
+  $('ventureSelect').hidden = !isFounder;
+  $('ventureSelect').style.display =
+    isFounder ? '' : 'none';
+
+  const newVentureButton =
+    document.querySelector('.top-right button');
+
+  if (newVentureButton) {
+    newVentureButton.hidden = !isFounder;
+    newVentureButton.style.display =
+      isFounder ? '' : 'none';
+  }
+
+  if (isAdmin) {
+    navigate('admin');
+  } else if (isInvestor) {
+    navigate('investors');
+  } else {
+    navigate('overview');
+  }
+}
+
+function renderChats() {
+  $('chatList').innerHTML =
+    chats.map(chat => `
+      <div class="chat-item">
+        <button
+          onclick="openChat(${chat.id})"
+          title="${esc(chat.title)}"
+        >
+          ${esc(chat.title)}
+        </button>
+
+        <button
+          class="chat-tools"
+          onclick="renameChat(${chat.id})"
+          title="Rename"
+        >
+          ✎
+        </button>
+
+        <button
+          class="chat-tools"
+          onclick="deleteChat(${chat.id})"
+          title="Delete"
+        >
+          ×
+        </button>
+      </div>
+    `).join('') ||
+    '<div class="mini" style="padding:12px">Your saved chats will appear here.</div>';
+}
+
+// ============================================================
+// CHAT MANAGEMENT
+// ============================================================
+
+async function newChat() {
+  try {
+    const result = await api('/chats', 'POST', {
+      venture_id: selected || null
+    });
+
+    await refreshAll();
+    await openChat(result.id);
+  } catch (error) {
+    err(error);
+  }
+}
+
+async function openChat(id) {
+  chatId = id;
+  navigate('chat');
+}
+
+async function renameChat(id) {
+  const chat = chats.find(item => item.id === id);
+
+  const title = prompt(
+    'Rename this conversation',
+    chat?.title || ''
+  );
+
+  if (!title) return;
+
+  try {
+    await api(`/chats/${id}`, 'PATCH', { title });
+    await refreshAll();
+  } catch (error) {
+    err(error);
+  }
+}
+
+async function deleteChat(id) {
+  if (!confirm(
+    'Delete this chat and all its messages permanently?'
+  )) {
+    return;
+  }
+
+  try {
+    await api(`/chats/${id}`, 'DELETE');
+
+    if (chatId === id) {
+      chatId = null;
+    }
+
+    await refreshAll();
+  } catch (error) {
+    err(error);
+  }
+}
+
+// ============================================================
+// CREATE VENTURE
+// ============================================================
+
+function openModal() {
+  if (account?.role !== 'founder') return;
+  $('modal').hidden = false;
+}
+
+function closeModal() {
+  $('modal').hidden = true;
+}
+
+$('ventureForm').onsubmit = async event => {
+  event.preventDefault();
+
+  const form = event.target;
+  const data = Object.fromEntries(new FormData(form));
+
+  try {
+    const result = await api(
+      '/ventures',
+      'POST',
+      data
+    );
+
+    selected = result.id;
+
+    closeModal();
+    form.reset();
+
+    await refreshAll();
+
+    navigate('overview');
+  } catch (error) {
+    err(error);
+  }
+};
+
+// ============================================================
+// MAIN PAGE RENDERING
+// ============================================================
+
+function renderStartPage() {
+  const pages = {
+    overview: {
+      heading: 'Mission Control',
+      intro:
+        'Track founder missions, evidence and financial assumptions.',
+      points: [
+        'Create a venture workspace',
+        'Complete business missions',
+        'Review your evidence'
+      ]
+    },
+
+    venture: {
+      heading: 'Venture Genome',
+      intro:
+        'Create and update your business profile.',
+      points: [
+        'Business name and industry',
+        'Target customers',
+        'Value proposition'
+      ]
+    },
+
+    evidence: {
+      heading: 'Evidence Ledger',
+      intro:
+        'Record business claims and supporting sources.',
+      points: [
+        'Save evidence claims',
+        'Describe supporting sources',
+        'Track verification status'
+      ]
+    },
+
+    finance: {
+      heading: 'Financial Laboratory',
+      intro:
+        'Calculate projected revenue, expenses and profit.',
+      points: [
+        'Enter financial assumptions',
+        'Calculate estimated results',
+        'Save updated figures'
+      ]
+    },
+
+    incubator: {
+      heading: '90-Day Incubator',
+      intro:
+        'Complete eight stages of business incubation.',
+      points: [
+        'Write each deliverable',
+        'Submit evidence',
+        'Advance after reviewer approval'
+      ]
+    }
+  };
+
+  const page = pages[view] || pages.overview;
+
+  $('content').innerHTML = `
+    <div class="hero">
+      <span class="eyebrow">
+        ${esc(page.heading.toUpperCase())}
+      </span>
+
+      <h1>${esc(page.heading)}</h1>
+
+      <p>${esc(page.intro)}</p>
+
+      <div class="toolbar">
+        <button
+          class="primary"
+          onclick="openModal()"
+        >
+          + Create your first venture
+        </button>
+
+        <button
+          class="ghost"
+          onclick="newChat()"
+        >
+          Ask the AI business mentor
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>What you can do here</h3>
+
+      ${page.points.map(point => `
+        <div class="record">
+          ✓ ${esc(point)}
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+async function render() {
+  const titles = {
+    overview: 'Venture mission control',
+    venture: 'Your Venture Genome',
+    evidence: 'Evidence ledger',
+    finance: 'Financial laboratory',
+    chat: 'MulaStream AI mentor',
+    incubator: '90-day investment readiness',
+    readiness: 'Readiness & rewards',
+    investors: 'Investor opportunities',
+    review: 'Mentor review queue',
+    admin: 'Administration'
+  };
+
+  $('pageTitle').textContent =
+    titles[view] || 'MulaStream VentureOS';
+
+  if (view === 'chat') return renderChat();
+  if (view === 'readiness') return renderReadiness();
+  if (view === 'investors') return renderInvestors();
+  if (view === 'review') return renderReviews();
+  if (view === 'admin') return renderAdmin();
+
+  if (!selected) {
+    renderStartPage();
+    return;
+  }
+
+  if (view === 'incubator') {
+    return renderIncubator();
+  }
+
+  const requestedView = view;
+  const requestedVenture = selected;
+
+  try {
+    const data = await api(
+      `/ventures/${requestedVenture}/dashboard`
+    );
+
+    if (
+      view !== requestedView ||
+      selected !== requestedVenture
+    ) {
+      return;
+    }
+
+    if (view === 'overview') overview(data);
+    if (view === 'venture') genome(data);
+    if (view === 'evidence') evidence(data);
+    if (view === 'finance') finance(data);
+  } catch (error) {
+    if (
+      view === requestedView &&
+      selected === requestedVenture
+    ) {
+      $('content').textContent = error.message;
+    }
+  }
+}
+
+// ============================================================
+// MISSION CONTROL
+// ============================================================
+
+function overview(data) {
+  const venture = data.venture;
+  const missions = data.missions;
+  const records = data.evidence;
+
+  const completed = missions.filter(
+    mission => mission.state === 'done'
+  ).length;
+
+  $('content').innerHTML = `
+    <div class="hero">
+      <span class="eyebrow">
+        ACTIVE VENTURE / ${esc(venture.location || 'NAMIBIA')}
+      </span>
+
+      <h1>${esc(venture.name)}</h1>
+
+      <p>
+        ${esc(
+          venture.problem ||
+          'Define the customer problem you want to solve.'
+        )}
+      </p>
+
+      <button
+        class="primary"
+        onclick="navigate('venture')"
+      >
+        Explore Venture Genome
+      </button>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <span class="eyebrow">
+          VALIDATION MISSIONS
+        </span>
+
+        <div class="metric">
+          ${completed} / ${missions.length}
+        </div>
+
+        <p>Self-reported completed missions</p>
+      </div>
+
+      <div class="card">
+        <span class="eyebrow">
+          EVIDENCE RECORDS
+        </span>
+
+        <div class="metric">
+          ${records.length}
+        </div>
+
+        <p>Evidence awaiting independent verification</p>
+      </div>
+
+      <div class="card">
+        <span class="eyebrow">
+          ESTIMATED MONTHLY RESULT
+        </span>
+
+        <div class="metric">
+          N$ ${data.financials.estimated_profit.toLocaleString()}
+        </div>
+
+        <p>Illustrative financial estimate</p>
+      </div>
+    </div>
+
+    <div class="grid two">
+      <div class="card">
+        <h3>Business missions</h3>
+
+        ${missions.map(mission => `
+          <label class="mission">
+            <input
+              type="checkbox"
+              ${mission.state === 'done' ? 'checked' : ''}
+              onchange="toggleMission(${mission.id})"
+            >
+
+            <span>
+              <strong>${esc(mission.title)}</strong>
+
+              <small>
+                ${mission.state === 'done'
+                  ? 'Marked complete'
+                  : 'Not completed'}
+              </small>
+            </span>
+          </label>
+        `).join('')}
+      </div>
+
+      <div class="card">
+        <h3>Venture progress</h3>
+
+        <p>
+          Build your business using actual customer
+          evidence and tested assumptions.
+        </p>
+
+        <div class="toolbar">
+          <button
+            class="ghost"
+            onclick="navigate('evidence')"
+          >
+            View evidence
+          </button>
+
+          <button
+            class="primary"
+            onclick="navigate('incubator')"
+          >
+            Open incubator
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function toggleMission(id) {
+  try {
+    await api(`/missions/${id}/toggle`, 'POST');
+    await render();
+  } catch (error) {
+    err(error);
+  }
+}
+
+// ============================================================
+// VENTURE GENOME
+// ============================================================
+
+function genome(data) {
+  const venture = data.venture;
+
+  $('content').innerHTML = `
+    <div class="card">
+      <h3>Your evolving business model</h3>
+
+      <p>
+        Update your venture details as you learn
+        more about your customers.
+      </p>
+
+      <form id="genomeForm">
+        <div class="grid two">
+          <label>
+            Venture name
+            <input
+              name="name"
+              value="${esc(venture.name)}"
+              required
+            >
+          </label>
+
+          <label>
+            Location
+            <input
+              name="location"
+              value="${esc(venture.location)}"
+            >
+          </label>
+
+          <label>
+            Industry
+            <input
+              name="industry"
+              value="${esc(venture.industry)}"
+            >
+          </label>
+
+          <label>
+            Target customers
+            <textarea name="customers">${esc(venture.customers)}</textarea>
+          </label>
+        </div>
+
+        <label>
+          Problem
+          <textarea name="problem" rows="3">${esc(venture.problem)}</textarea>
+        </label>
+
+        <label>
+          Value proposition
+          <textarea name="proposition" rows="3">${esc(venture.proposition)}</textarea>
+        </label>
+
+        <button class="primary">
+          Save updated assumptions
+        </button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3>Validate your assumptions</h3>
+
+      <p>
+        Ask the AI mentor to challenge your business model
+        and recommend customer research activities.
+      </p>
+
+      <button
+        class="ghost"
+        onclick="newChat()"
+      >
+        Start AI mentor conversation
+      </button>
+    </div>
+  `;
+
+  $('genomeForm').onsubmit = async event => {
+    event.preventDefault();
+
+    try {
+      await api(
+        `/ventures/${selected}`,
+        'PATCH',
+        Object.fromEntries(new FormData(event.target))
+      );
+
+      await refreshAll();
+      alert('Venture details saved.');
+    } catch (error) {
+      err(error);
+    }
+  };
+}
+
+// ============================================================
+// EVIDENCE LEDGER
+// ============================================================
+
+function evidence(data) {
+  const records = data.evidence;
+
+  $('content').innerHTML = `
+    <div class="grid two">
+      <div class="card">
+        <h3>Add an evidence claim</h3>
+
+        <p>
+          Describe a real observation and its source.
+        </p>
+
+        <form id="evidenceForm">
+          <label>
+            Claim or observation
+            <textarea
+              name="claim"
+              maxlength="1000"
+              required
+            ></textarea>
+          </label>
+
+          <label>
+            Source description
+            <input
+              name="source"
+              maxlength="500"
+            >
+          </label>
+
+          <button class="primary">
+            Save evidence record
+          </button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h3>Evidence verification</h3>
+
+        <p>
+          A submitted claim is not independently verified
+          until an authorised reviewer examines it.
+        </p>
+
+        <button
+          class="ghost"
+          onclick="navigate('readiness')"
+        >
+          Upload supporting file
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Evidence ledger (${records.length})</h3>
+
+      <div class="grid two">
+        <label>
+          Search entries
+          <input
+            id="evidenceSearch"
+            placeholder="Search claims and sources"
+          >
+        </label>
+
+        <label>
+          Review status
+          <select id="evidenceFilter">
+            <option value="all">All statuses</option>
+            <option value="unreviewed">Unreviewed</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </label>
+      </div>
+
+      <div id="evidenceRecords"></div>
+    </div>
+  `;
+
+  $('evidenceForm').onsubmit = async event => {
+    event.preventDefault();
+
+    try {
+      await api(
+        `/ventures/${selected}/evidence`,
+        'POST',
+        Object.fromEntries(new FormData(event.target))
+      );
+
+      await render();
+    } catch (error) {
+      err(error);
+    }
+  };
+
+  function drawRecords() {
+    const search = $('evidenceSearch')
+      .value.toLowerCase().trim();
+
+    const status = $('evidenceFilter').value;
+
+    const filtered = records.filter(record => {
+      const matchesStatus =
+        status === 'all' || record.status === status;
+
+      const matchesSearch =
+        `${record.claim} ${record.source}`
+          .toLowerCase().includes(search);
+
+      return matchesStatus && matchesSearch;
+    });
+
+    $('evidenceRecords').innerHTML =
+      filtered.map(record => `
+        <div class="record">
+          <div class="row-between">
+            <strong>${esc(record.claim)}</strong>
+
+            <span class="tag">
+              ${esc(record.status)}
+            </span>
+          </div>
+
+          <small>
+            Source:
+            ${esc(record.source || 'Not specified')}
+          </small>
+
+          ${record.status === 'unreviewed' ? `
+            <div class="toolbar">
+              <button
+                class="ghost"
+                onclick="editLedgerEntry(${record.id})"
+              >
+                Edit
+              </button>
+
+              <button
+                class="ghost"
+                onclick="deleteLedgerEntry(${record.id})"
+              >
+                Delete
+              </button>
+            </div>
+          ` : ''}
+        </div>
+      `).join('') ||
+      '<p>No matching evidence records.</p>';
+  }
+
+  $('evidenceSearch').oninput = drawRecords;
+  $('evidenceFilter').onchange = drawRecords;
+
+  drawRecords();
+}
+
+async function editLedgerEntry(id) {
+  try {
+    const data = await api(
+      `/ventures/${selected}/dashboard`
+    );
+
+    const record = data.evidence.find(
+      item => item.id === id
+    );
+
+    if (!record) return;
+
+    const claim = prompt(
+      'Edit evidence claim',
+      record.claim
+    );
+
+    if (claim === null) return;
+
+    const source = prompt(
+      'Edit source description',
+      record.source || ''
+    );
+
+    if (source === null) return;
+
+    await api(
+      `/ventures/${selected}/evidence/${id}`,
+      'PATCH',
+      { claim, source }
+    );
+
+    await render();
+  } catch (error) {
+    err(error);
+  }
+}
+
+async function deleteLedgerEntry(id) {
+  if (!confirm(
+    'Permanently delete this unreviewed evidence record?'
+  )) {
+    return;
+  }
+
+  try {
+    await api(
+      `/ventures/${selected}/evidence/${id}`,
+      'DELETE'
+    );
+
+    await render();
+  } catch (error) {
+    err(error);
+  }
+}
+
+// ============================================================
+// FINANCIAL LABORATORY
+// ============================================================
+
+function finance(data) {
+  const venture = data.venture;
+  const finances = data.financials;
+
+  $('content').innerHTML = `
+    <div class="hero">
+      <span class="eyebrow">
+        UNIT ECONOMICS / NAD
+      </span>
+
+      <h1>Financial Laboratory</h1>
+
+      <p>
+        Estimate monthly revenue, costs and operating profit
+        using your own business assumptions.
+      </p>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <span class="eyebrow">
+          ESTIMATED REVENUE
+        </span>
+
+        <div class="financial-value">
+          N$ ${finances.revenue.toLocaleString()}
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="eyebrow">
+          TOTAL COSTS
+        </span>
+
+        <div class="financial-value">
+          N$ ${(finances.variable_cost +
+            finances.fixed_cost).toLocaleString()}
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="eyebrow">
+          ESTIMATED OPERATING RESULT
+        </span>
+
+        <div class="financial-value">
+          N$ ${finances.estimated_profit.toLocaleString()}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Financial assumptions</h3>
+
+      <form id="financeForm" class="finance-form">
+        ${[
+          ['price', 'Selling price per unit'],
+          ['unit_cost', 'Direct cost per unit'],
+          ['monthly_units', 'Units sold per month'],
+          ['fixed_cost', 'Monthly fixed costs']
+        ].map(([key, label]) => `
+          <label>
+            ${label}
+
+            <input
+              name="${key}"
+              type="number"
+              min="0"
+              step="${key === 'monthly_units' ? '1' : '0.01'}"
+              value="${venture[key]}"
+            >
+          </label>
+        `).join('')}
+
+        <div>
+          <button class="primary">
+            Recalculate and save
+          </button>
+        </div>
+      </form>
+
+      <p class="hint">
+        Estimates are illustrative and are not verified forecasts.
+      </p>
+    </div>
+  `;
+
+  $('financeForm').onsubmit = async event => {
+    event.preventDefault();
+
+    try {
+      await api(
+        `/ventures/${selected}`,
+        'PATCH',
+        Object.fromEntries(new FormData(event.target))
+      );
+
+      await render();
+    } catch (error) {
+      err(error);
+    }
+  };
+}
+
+// ============================================================
+// AI MENTOR / GEMINI CHAT
+// ============================================================
+
+async function renderChat() {
+  if (!chatId && chats.length) {
+    chatId = chats[0].id;
+  }
+
+  $('content').innerHTML = `
+    <div class="chat-layout">
+      <div class="card" style="overflow:auto">
+        <div class="row-between">
+          <h3>Conversations</h3>
+
+          <button
+            class="plus"
+            onclick="newChat()"
+          >
+            +
+          </button>
+        </div>
+
+        ${chats.map(chat => `
+          <div class="record">
+            <button
+              class="link"
+              onclick="openChat(${chat.id})"
+            >
+              ${esc(chat.title)}
+            </button>
+          </div>
+        `).join('') || '<p>No chats yet.</p>'}
+      </div>
+
+      <div class="chat-panel">
+        <header>
+          AI Venture Mentor
+          <span class="tag" style="float:right">
+            Gemini AI
+          </span>
+        </header>
+
+        <div
+          id="messages"
+          class="messages"
+        ></div>
+
+        <form
+          id="compose"
+          class="composer"
+        >
+          <textarea
+            id="messageText"
+            maxlength="3000"
+            placeholder="Ask your business mentor a question..."
+            required
+          ></textarea>
+
+          <button class="primary">
+            Send
+          </button>
+        </form>
+      </div>
+    </div>
+  `;
+
+  if (!chatId) {
+    $('messages').innerHTML = `
+      <div class="empty">
+        <h3>Begin a conversation</h3>
+
+        <p>
+          Your conversations are saved to your account.
+        </p>
+      </div>
+    `;
+  } else {
+    try {
+      const data = await api(`/chats/${chatId}`);
+
+      $('messages').innerHTML =
+        data.messages.map(message => `
+          <div class="bubble ${
+            message.role === 'user' ? 'user' : ''
+          }">
+            ${esc(message.body)}
+          </div>
+        `).join('') ||
+        '<div class="empty">Ask your first question.</div>';
+    } catch (error) {
+      $('messages').textContent = error.message;
+    }
+  }
+
+  const messageArea = $('messages');
+  messageArea.scrollTop = messageArea.scrollHeight;
+
+  $('compose').onsubmit = async event => {
+    event.preventDefault();
+
+    const field = $('messageText');
+    const message = field.value.trim();
+
+    if (!message) return;
+
+    field.value = '';
+
+    const button = event.target.querySelector('button');
+    button.disabled = true;
+
+    try {
+      if (!chatId) {
+        const result = await api('/chats', 'POST', {
+          venture_id: selected || null
+        });
+
+        chatId = result.id;
+      }
+
+      await api(
+        `/chats/${chatId}/send`,
+        'POST',
+        { message }
+      );
+
+      chats = await api('/chats');
+
+      renderChats();
+      await renderChat();
+    } catch (error) {
+      field.value = message;
+      err(error);
+    } finally {
+      button.disabled = false;
+    }
+  };
+}
+
+// ============================================================
+// 90-DAY INCUBATOR
+// ============================================================
+
+async function renderIncubator() {
+  if (!selected) {
+    renderStartPage();
+    return;
+  }
+
+  const ventureId = selected;
+
+  try {
+    const data = await api(
+      `/ventures/${ventureId}/incubator`
+    );
+
+    if (
+      view !== 'incubator' ||
+      selected !== ventureId
+    ) {
+      return;
+    }
+
+    $('content').innerHTML = `
+      <div class="hero">
+        <span class="eyebrow">
+          90-DAY INCUBATION PROGRAMME
+        </span>
+
+        <h1>From founder to investor-ready</h1>
+
+        <p>
+          Complete every deliverable and submit supporting
+          evidence for independent review.
+        </p>
+
+        <div class="metric">
+          ${data.readiness_score}%
+        </div>
+
+        <small>
+          Provisional coverage ·
+          ${data.reviewed_stages}/8 reviewed stages
+        </small>
+      </div>
+
+      <div class="card">
+        <h3>Plan your startup capital</h3>
+
+        <p>
+          Example allocations only.
+          Confirm actual costs with suppliers.
+        </p>
+
+        <form onsubmit="showBudget(event)">
+          <label>
+            Starting capital (N$)
+            <input
+              name="amount"
+              type="number"
+              min="100"
+              max="1000000"
+              value="10000"
+              required
+            >
+          </label>
+
+          <label>
+            Business type
+
+            <select name="kind">
+              <option value="retail">
+                Retail business
+              </option>
+
+              <option value="service">
+                Service business
+              </option>
+
+              <option value="food">
+                Food business
+              </option>
+            </select>
+          </label>
+
+          <button class="ghost">
+            Calculate allocation
+          </button>
+        </form>
+
+        <div id="budgetOutput"></div>
+      </div>
+
+      <div class="grid">
+        ${data.roadmap.map(month => `
+          <div class="card">
+            <span class="eyebrow">
+              MONTH ${month.month}
+            </span>
+
+            <h3>${esc(month.name)}</h3>
+            <p>${esc(month.goal)}</p>
+          </div>
+        `).join('')}
+      </div>
+
+      ${data.stages.map(stage => `
+        <div
+          class="card"
+          style="
+            margin-top:18px;
+            opacity:${stage.unlocked ? 1 : 0.78};
+          "
+        >
+          <div class="row-between">
+            <div>
+              <span class="eyebrow">
+                MONTH ${stage.month} ·
+                STAGE ${stage.number}
+              </span>
+
+              <h3>${esc(stage.title)}</h3>
+            </div>
+
+            <span class="tag">
+              ${esc(
+                String(stage.status).replaceAll('_', ' ')
+              )}
+            </span>
+          </div>
+
+          <p>${esc(stage.goal)}</p>
+
+          <h4>Activities</h4>
+
+          <p>
+            ${stage.activities.map(esc).join(' · ')}
+          </p>
+
+          <h4>Required deliverables</h4>
+
+          ${stage.deliverables.map((deliverable, index) => {
+            const submission = stage.submissions.find(
+              item => item.deliverable === deliverable
+            );
+
+            const approved =
+              submission?.reviewer_status === 'approved';
+
+            const canWrite =
+              stage.unlocked && !approved;
+
+            const status = submission
+              ? String(
+                  submission.reviewer_status || 'pending'
+                ).replaceAll('_', ' ')
+              : 'Not submitted';
+
+            return `
+              <details
+                class="record"
+                ${index === 0 && stage.unlocked
+                  ? 'open'
+                  : ''}
+              >
+                <summary
+                  style="
+                    cursor:pointer;
+                    padding:8px 0;
+                    font-weight:600;
+                  "
+                >
+                  ${esc(deliverable)}
+
+                  <div>
+                    <small style="font-weight:400">
+                      ${esc(status)}
+
+                      ${submission
+                        ? ' · Provisional score ' +
+                          Number(submission.ai_score) +
+                          '/100'
+                        : ''}
+                    </small>
+                  </div>
+                </summary>
+
+                <div style="padding:10px 0">
+                  ${!stage.unlocked ? `
+                    <p class="hint">
+                      This stage is locked until earlier
+                      stages receive the required approvals.
+                    </p>
+                  ` : ''}
+
+                  <form
+                    onsubmit="submitIncubator(
+                      event,
+                      ${stage.number}
+                    )"
+                  >
+                    <input
+                      type="hidden"
+                      name="deliverable"
+                      value="${esc(deliverable)}"
+                    >
+
+                    <label>
+                      Your work for this deliverable
+
+                      <textarea
+                        name="narrative"
+                        rows="6"
+                        minlength="40"
+                        maxlength="12000"
+                        required
+                        ${canWrite ? '' : 'readonly'}
+                      >${esc(
+                        submission?.narrative || ''
+                      )}</textarea>
+                    </label>
+
+                    <label>
+                      Evidence reference
+
+                      <input
+                        name="evidence_ref"
+                        maxlength="500"
+                        value="${esc(
+                          submission?.evidence_ref || ''
+                        )}"
+                        placeholder="Survey, interview, document or source"
+                        ${canWrite ? '' : 'readonly'}
+                      >
+                    </label>
+
+                    ${submission?.ai_feedback ? `
+                      <p class="hint">
+                        <strong>Draft feedback:</strong>
+                        ${esc(submission.ai_feedback)}
+                      </p>
+                    ` : ''}
+
+                    ${approved ? `
+                      <p class="hint">
+                        Approved by an authorised reviewer.
+                        This deliverable is read-only.
+                      </p>
+                    ` : ''}
+
+                    ${canWrite ? `
+                      <button class="primary">
+                        ${submission
+                          ? 'Update and submit for review'
+                          : 'Assess and save deliverable'}
+                      </button>
+                    ` : ''}
+                  </form>
+                </div>
+              </details>
+            `;
+          }).join('')}
+        </div>
+      `).join('')}
+
+      <div class="card">
+        <h3>Investor dossier</h3>
+
+        <p>
+          Export your current draft deliverables
+          and outstanding requirements.
+        </p>
+
+        <button
+          class="ghost"
+          onclick="downloadDossier()"
+        >
+          Export due diligence draft
+        </button>
+      </div>
+    `;
+  } catch (error) {
+    if (
+      view === 'incubator' &&
+      selected === ventureId
+    ) {
+      $('content').textContent = error.message;
+    }
+  }
+}
+
+async function submitIncubator(event, stage) {
+  event.preventDefault();
+
+  const data = Object.fromEntries(
+    new FormData(event.target)
+  );
+
+  try {
+    const result = await api(
+      `/ventures/${selected}/incubator/${stage}/submit`,
+      'POST',
+      data
+    );
+
+    alert(
+      `Provisional score: ${result.score}/100.\n\n` +
+      `${result.feedback}\n\n` +
+      'Independent reviewer approval is still required.'
+    );
+
+    await renderIncubator();
+  } catch (error) {
+    err(error);
+  }
+}
+
+async function downloadDossier() {
+  try {
+    const data = await api(
+      `/ventures/${selected}/investor-package`
+    );
+
+    const blob = new Blob(
+      [JSON.stringify(data, null, 2)],
+      { type: 'application/json' }
+    );
+
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'venture_due_diligence_draft.json';
+    link.click();
+
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    err(error);
+  }
+}
+
+// ============================================================
+// BUSINESS BUDGET
+// ============================================================
+
+async function showBudget(event) {
+  event.preventDefault();
+
+  const form = event.target;
+
+  const amount = form.elements.amount.value;
+  const kind = form.elements.kind.value;
+
+  try {
+    const data = await api(
+      `/business-budget?amount=${
+        encodeURIComponent(amount)
+      }&kind=${encodeURIComponent(kind)}`
+    );
+
+    $('budgetOutput').innerHTML = `
+      <h3>
+        N$ ${data.starting_capital_nad.toLocaleString()}
+        suggested allocation
+      </h3>
+
+      ${data.allocations.map(item => `
+        <div class="record">
+          <strong>${esc(item.category)}</strong>
+
+          ${item.percentage}%:
+
+          N$ ${item.amount_nad.toLocaleString()}
+        </div>
+      `).join('')}
+
+      <p>
+        <strong>
+          Total: N$ ${data.total_nad.toLocaleString()}
+        </strong>
+      </p>
+
+      <p class="hint">
+        ${esc(data.caution)}
+      </p>
+    `;
+  } catch (error) {
+    err(error);
+  }
+}
+
+// ============================================================
+// READINESS, REWARDS AND FILE UPLOADS
+// ============================================================
+
+async function renderReadiness() {
+  if (!selected) {
+    $('content').innerHTML =
+      '<div class="card">Create or select a venture first.</div>';
+    return;
+  }
+
+  try {
+    const [assessment, rewards, uploads, interest] =
+      await Promise.all([
+        api(`/ventures/${selected}/assessment`),
+        api(`/ventures/${selected}/rewards`),
+        api(`/ventures/${selected}/uploads`),
+        api(`/ventures/${selected}/investor-interest`)
+      ]);
+
+    $('content').innerHTML = `
+      <div class="hero">
+        <h1>Evidence-based readiness</h1>
+
+        <div class="metric">
+          ${assessment.overall}/100
+        </div>
+
+        <p>${esc(assessment.interpretation)}</p>
+
+        <button
+          class="primary"
+          onclick="saveReadiness()"
+        >
+          Save assessment snapshot
+        </button>
+      </div>
+
+      <div class="grid two">
+        <div class="card">
+          <h3>Ten assessment criteria</h3>
+
+          ${assessment.criteria.map(item => `
+            <div class="record">
+              <strong>
+                ${esc(item.criterion)}
+              </strong>
+
+              ${item.score}/100
+
+              <small>
+                ${esc(item.confidence)} confidence ·
+                ${item.verified_items} approved items
+              </small>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="card">
+          <h3>Progress rewards</h3>
+
+          <div class="metric">
+            ${rewards.points} points
+          </div>
+
+          <p>
+            ${rewards.badge_count} earned badges
+          </p>
+
+          ${rewards.badges.map(badge => `
+            <div class="record">
+              Stage ${badge.stage}:
+              ${esc(badge.name)}
+            </div>
+          `).join('')}
+
+          <h3>Investor enquiries</h3>
+
+          ${interest.map(item => `
+            <div class="record">
+              ${esc(
+                item.note || 'Interested investor'
+              )}
+
+              <small>
+                ${new Date(
+                  item.created_at * 1000
+                ).toLocaleDateString()}
+              </small>
+            </div>
+          `).join('') ||
+          '<p>No expressions of interest yet.</p>'}
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Supporting evidence upload</h3>
+
+        <p>
+          Maximum file size: 5 MB.
+          Do not upload sensitive banking or identity records
+          into this demo.
+        </p>
+
+        <form id="evidenceUpload">
+          <label>
+            Incubator stage
+
+            <select name="stage">
+              ${Array.from(
+                { length: 8 },
+                (_, index) => `
+                  <option value="${index + 1}">
+                    Stage ${index + 1}
+                  </option>
+                `
+              ).join('')}
+            </select>
+          </label>
+
+          <label>
+            Deliverable description
+            <input
+              name="deliverable"
+              required
+            >
+          </label>
+
+          <input
+            type="file"
+            name="file"
+            required
+          >
+
+          <button class="primary">
+            Upload supporting evidence
+          </button>
+        </form>
+
+        <h3>Saved files</h3>
+
+        ${uploads.map(file => `
+          <div class="record">
+            ${esc(file.filename)}
+
+            <small>
+              Stage ${file.stage} ·
+              Awaiting manual verification
+            </small>
+          </div>
+        `).join('') || '<p>No files uploaded.</p>'}
+      </div>
+    `;
+
+    $('evidenceUpload').onsubmit = async event => {
+      event.preventDefault();
+
+      const form = new FormData(event.target);
+
+      try {
+        const response = await fetch(
+          `/api/ventures/${selected}/upload`,
+          {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+              'x-csrf-token': csrf
+            },
+            body: form
+          }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            result.detail || 'Upload failed'
+          );
+        }
+
+        alert(result.notice);
+        await renderReadiness();
+      } catch (error) {
+        err(error);
+      }
+    };
+  } catch (error) {
+    $('content').textContent = error.message;
+  }
+}
+
+async function saveReadiness() {
+  try {
+    await api(
+      `/ventures/${selected}/assessment`,
+      'POST',
+      {}
+    );
+
+    alert('Assessment snapshot saved.');
+    await renderReadiness();
+  } catch (error) {
+    err(error);
+  }
+}
+
+// ============================================================
+// INVESTOR PORTAL
+// ============================================================
+
+async function renderInvestors() {
+  if (account?.role !== 'investor') {
+    $('content').textContent =
+      'Investor account required.';
+    return;
+  }
+
+  try {
+    const data = await api('/investor/opportunities');
+
+    $('content').innerHTML = `
+      <div class="hero">
+        <span class="eyebrow">
+          INVESTOR PORTAL
+        </span>
+
+        <h1>Investment Opportunities</h1>
+
+        <p>${esc(data.notice)}</p>
+
+        ${canReview ? `
+          <button
+            class="ghost"
+            onclick="navigate('review')"
+          >
+            Open Reviewer Workspace
+          </button>
+        ` : ''}
+      </div>
+
+      ${data.opportunities.map(venture => `
+        <div class="card" style="margin-top:12px">
+          <h3>${esc(venture.name)}</h3>
+
+          <p>
+            ${esc(venture.industry)} ·
+            ${esc(venture.location)}
+          </p>
+
+          <p>
+            Evidence coverage:
+            ${venture.readiness_score}/100
+          </p>
+
+          <p>${esc(venture.problem)}</p>
+
+          <p>${esc(venture.proposition)}</p>
+
+          <button
+            class="primary"
+            onclick="expressInterest(${venture.id})"
+          >
+            Express interest
+          </button>
+        </div>
+      `).join('') || `
+        <div class="card">
+          No approved investment opportunities
+          have been published yet.
+        </div>
+      `}
+    `;
+  } catch (error) {
+    $('content').innerHTML = `
+      <div class="card">
+        ${esc(error.message)}
+      </div>
+    `;
+  }
+}
+
+async function expressInterest(id) {
+  const note = prompt(
+    'Optional interest message:'
+  );
+
+  if (note === null) return;
+
+  try {
+    await api(
+      `/investor/opportunities/${id}/interest`,
+      'POST',
+      { note }
+    );
+
+    alert('Expression of interest saved.');
+  } catch (error) {
+    err(error);
+  }
+}
+
+// ============================================================
+// AUTHORISED REVIEWER WORKSPACE
+// ============================================================
+
+async function renderReviews() {
+  if (!canReview) {
+    $('content').innerHTML = `
+      <div class="card">
+        <h3>Access Restricted</h3>
+
+        <p>
+          Only administrators and authorised investor
+          reviewers can access this workspace.
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  try {
+    const submissions = await api('/review/queue');
+
+    $('content').innerHTML = `
+      <div class="hero">
+        <span class="eyebrow">
+          AUTHORISED REVIEWER WORKSPACE
+        </span>
+
+        <h1>Mentor Review</h1>
+
+        <p>
+          Check each submission and its supporting evidence
+          before making a decision.
+        </p>
+
+        <button
+          class="ghost"
+          onclick="exitReviewerWorkspace()"
+        >
+          Exit Reviewer Workspace
+        </button>
+      </div>
+
+      ${submissions.map(item => `
+        <div class="card" style="margin-top:12px">
+          <span class="eyebrow">
+            STAGE ${item.stage}
+          </span>
+
+          <h3>${esc(item.venture)}</h3>
+
+          <h4>${esc(item.deliverable)}</h4>
+
+          <p>${esc(item.narrative)}</p>
+
+          <div class="record">
+            <strong>Evidence reference:</strong>
+            ${esc(item.evidence_ref || 'Missing')}
+          </div>
+
+          <p>
+            Provisional assessment:
+            ${Number(item.ai_score)}/100
+          </p>
+
+          <p class="hint">
+            Automated scores do not verify the
+            authenticity of submitted evidence.
+          </p>
+
+          <div class="toolbar">
+            <button
+              class="primary"
+              onclick="makeReview(
+                ${item.id},
+                'approved'
+              )"
+            >
+              Approve
+            </button>
+
+            <button
+              class="ghost"
+              onclick="makeReview(
+                ${item.id},
+                'needs_changes'
+              )"
+            >
+              Request Corrections
+            </button>
+
+            <button
+              class="ghost"
+              onclick="makeReview(
+                ${item.id},
+                'rejected'
+              )"
+            >
+              Reject
+            </button>
+          </div>
+        </div>
+      `).join('') ||
+      '<div class="card">No submissions awaiting review.</div>'}
+    `;
+  } catch (error) {
+    $('content').innerHTML = `
+      <div class="card">
+        <h3>Reviewer Access Error</h3>
+
+        <p>${esc(error.message)}</p>
+
+        <button
+          class="ghost"
+          onclick="exitReviewerWorkspace()"
+        >
+          Exit
+        </button>
+      </div>
+    `;
+  }
+}
+
+function exitReviewerWorkspace() {
+  if (account?.role === 'admin') {
+    navigate('admin');
+  } else {
+    navigate('investors');
+  }
+}
+
+async function makeReview(id, decision) {
+  const reason = prompt(
+    'Explain your decision and the evidence checked (at least 12 characters):'
+  );
+
+  if (
+    !reason ||
+    reason.trim().length < 12
+  ) {
+    alert(
+      'Provide a detailed reason of at least 12 characters.'
+    );
+    return;
+  }
+
+  try {
+    await api(
+      `/review/${id}`,
+      'POST',
+      {
+        decision,
+        reason: reason.trim()
+      }
+    );
+
+    alert('Review decision saved.');
+
+    await renderReviews();
+  } catch (error) {
+    err(error);
+  }
+}
+
+// ============================================================
+// ADMINISTRATOR DASHBOARD
+// ============================================================
+
+async function renderAdmin() {
+  if (account?.role !== 'admin') {
+    $('content').textContent =
+      'Administrator access required.';
+    return;
+  }
+
+  try {
+    const [summary, users, audit] =
+      await Promise.all([
+        api('/admin/summary'),
+        api('/admin/users'),
+        api('/admin/audit')
+      ]);
+
+    if (view !== 'admin') return;
+
+    const statistics = Object.entries(summary)
+      .map(([key, value]) => `
+        <div class="card">
+          <span class="eyebrow">
+            ${esc(key.replaceAll('_', ' '))}
+          </span>
+
+          <div class="metric">
+            ${Number(value) || 0}
+          </div>
+        </div>
+      `).join('');
+
+    const userRecords = users.map(user => `
+      <div class="record">
+        <div class="row-between">
+          <div>
+            <strong>${esc(user.name)}</strong>
+
+            <small>
+              ${esc(user.email)}
+            </small>
+          </div>
+
+          <span class="tag">
+            ${esc(
+              user.is_admin
+                ? 'Administrator'
+                : user.role
+            )}
+          </span>
+        </div>
+
+        <p>
+          ${user.is_reviewer
+            ? 'Authorised reviewer'
+            : 'No reviewer permissions'}
+        </p>
+
+        ${user.role === 'investor' &&
+          !user.is_admin ? `
+          <button
+            class="ghost"
+            onclick="setReviewerPermission(
+              ${user.id},
+              ${!user.is_reviewer}
+            )"
+          >
+            ${user.is_reviewer
+              ? 'Revoke Reviewer Access'
+              : 'Authorise as Reviewer'}
+          </button>
+        ` : ''}
+      </div>
+    `).join('');
+
+    const auditRecords = audit.map(item => `
+      <div class="record">
+        <strong>
+          ${esc(item.action)}
+        </strong>
+
+        <p>
+          ${esc(item.target)}
+        </p>
+
+        <small>
+          ${new Date(
+            item.created_at * 1000
+          ).toLocaleString()}
+        </small>
+      </div>
+    `).join('');
+
+    $('content').innerHTML = `
+      <div class="hero">
+        <span class="eyebrow">
+          ADMINISTRATOR PORTAL
+        </span>
+
+        <h1>Platform Administration</h1>
+
+        <p>
+          Manage registered accounts,
+          authorised investor reviewers,
+          submissions and platform activity.
+        </p>
+
+        <div class="toolbar">
+          <button
+            class="primary"
+            onclick="navigate('review')"
+          >
+            Open Review Queue
+          </button>
+
+          <button
+            class="ghost"
+            onclick="logout()"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+
+      <div class="grid">
+        ${statistics}
+      </div>
+
+      <div class="card">
+        <h3>User Management</h3>
+
+        ${userRecords ||
+          '<p>No registered users.</p>'}
+      </div>
+
+      <div class="card">
+        <h3>Submission Verification</h3>
+
+        <p>
+          Review submitted deliverables and
+          supporting evidence without a reviewer token.
+        </p>
+
+        <button
+          class="primary"
+          onclick="navigate('review')"
+        >
+          Review Pending Submissions
+        </button>
+      </div>
+
+      <div class="card">
+        <h3>Audit History</h3>
+
+        ${auditRecords ||
+          '<p>No recorded actions yet.</p>'}
+      </div>
+    `;
+  } catch (error) {
+    $('content').innerHTML = `
+      <div class="card">
+        <h3>Administrator Error</h3>
+        <p>${esc(error.message)}</p>
+      </div>
+    `;
+  }
+}
+
+// ============================================================
+// ADMINISTRATOR: AUTHORISE / REVOKE REVIEWERS
+// ============================================================
+
+async function setReviewerPermission(userId, enabled) {
+  if (account?.role !== 'admin') {
+    alert('Administrator access required.');
+    return;
+  }
+
+  const action = enabled
+    ? 'authorise this investor as a reviewer'
+    : 'revoke this investor reviewer access';
+
+  if (!confirm(
+    `Do you want to ${action}?`
+  )) {
+    return;
+  }
+
+  try {
+    await api(
+      `/admin/users/${userId}/reviewer`,
+      'POST',
+      { enabled }
+    );
+
+    alert(
+      enabled
+        ? 'Investor reviewer authorised.'
+        : 'Reviewer access revoked.'
+    );
+
+    await renderAdmin();
+  } catch (error) {
+    err(error);
+  }
+}
+
+// ============================================================
+// START APPLICATION
+// ============================================================
+
+boot();

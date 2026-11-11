@@ -1,0 +1,22 @@
+MULASTREAM VENTUREOS — PRESENTATION BUILD
+
+1. Preserve the old folder and data/ventureos.sqlite3. This ZIP intentionally contains no user database.
+2. Install Python dependencies: python -m pip install -r requirements.txt
+3. Get a Gemini API key from https://aistudio.google.com/apikey
+4. Run START_GEMINI_WINDOWS.bat and enter your key locally (never show it to judges).
+5. Browse http://127.0.0.1:8501; create a demo founder account; create a shoe retail venture.
+6. Open '90-day incubator' in the left sidebar. Observe 8 stages and 48 deliverables.
+7. Run the N$10,000 example budget calculation; amounts total N$10,000 exactly and are illustrative.
+8. Submit a Stage 1 concept note. The completeness score is PROVISIONAL, and progression is not approved merely from a submission.
+9. Use AI mentor. Test a business-plan question, follow-up budget question, and off-topic question such as 'Who won the football match?'.
+10. Export investor dossier. Missing and unverified items are clearly identified.
+
+HONEST DEMO CLAIMS
+- Gemini is hosted and requires internet, a valid API key, and available quota.
+- The RAG knowledge contains historical/imported entries, some unverified; only approved tiers/statuses are used when answering platform facts.
+- The 8-stage assessment is a transparent heuristic for draft completeness, NOT trained AI document authentication.
+- The prototype does NOT currently perform file upload, OCR, factual due-diligence verification, mentor account approval, real investor matching, or WhatsApp integration.
+- Stage progression remains blocked pending genuine verification; no fake mentor approvals are provided.
+- Financial allocations are configurable example percentages, not actual regional prices or guaranteed outcomes.
+- Users' own text and chat content is sent to Gemini if configured. Use demo/synthetic data.
+- This is a LOCAL PROTOTYPE, not production security hardened.

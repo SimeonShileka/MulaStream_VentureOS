@@ -1,0 +1,17 @@
+MULASTREAM VENTUREOS ENHANCED — LOCAL PROTOTYPE
+
+1. Extract to a NEW folder. Do not overwrite your current installation.
+2. Open that folder in VS Code / PowerShell.
+3. Run: python -m pip install -r requirements.txt
+4. Ensure Ollama is running and qwen3:4b appears under: ollama list
+5. Run: $env:OLLAMA_MODEL="qwen3:4b"
+6. Run: python -m uvicorn app:app --host 127.0.0.1 --port 8501
+7. Visit: http://127.0.0.1:8501
+
+The distributed archive deliberately has NO database, accounts or personal chats.
+To reuse your accounts, stop both servers, back up the original data/ventureos.sqlite3, and copy it into this project's data folder.
+
+TEST: create/login, then ask: What is a business plan?; Can you help me create one?; I want a shoe shop in Windhoek.; How do I market it?
+The business-plan workflow has a fast local fallback. Other questions may invoke Ollama with a 20-second timeout and fallback.
+Do not regard bundled platform claims as officially verified merely because an entry is labelled confirmed in the imported training pack.
+This is a proof-of-concept. Windows Ollama model speed and complete end-to-end UI behavior require on-device testing.

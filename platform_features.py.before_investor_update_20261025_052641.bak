@@ -1,0 +1,426 @@
+# Demo-grade evidence gated assessment, reviewer actions, and investor interest.
+
+# No claims of external identity verification or live investments are made.
+
+from fastapi import APIRouter,Request,HTTPException
+
+import os, secrets, json, hashlib, re, time
+
+from pathlib import Path
+
+from incubator import STAGES
+
+router=APIRouter(prefix='/api')
+
+_db=None
+
+
+
+def install(app,conn,auth,csrf,owner,now):
+
+ global _db
+
+ _db=(conn,auth,csrf,owner,now)
+
+ with conn() as c:
+
+  c.executescript('''
+
+  CREATE TABLE IF NOT EXISTS admin_audit(id INTEGER PRIMARY KEY,actor INTEGER NOT NULL,action TEXT NOT NULL,target TEXT NOT NULL,created_at INTEGER NOT NULL);
+  CREATE TABLE IF NOT EXISTS reviewer_accounts (user_id INTEGER PRIMARY KEY REFERENCES users(id), role TEXT NOT NULL CHECK(role IN ('mentor','admin')));
+
+  CREATE TABLE IF NOT EXISTS review_events(id INTEGER PRIMARY KEY, venture_id INTEGER NOT NULL, stage INTEGER NOT NULL, deliverable TEXT NOT NULL, actor INTEGER NOT NULL, decision TEXT NOT NULL, reason TEXT NOT NULL, created_at INTEGER NOT NULL);
+
+  CREATE TABLE IF NOT EXISTS rewards(id INTEGER PRIMARY KEY, venture_id INTEGER NOT NULL, user_id INTEGER NOT NULL, event_key TEXT NOT NULL UNIQUE, points INTEGER NOT NULL, reason TEXT NOT NULL, created_at INTEGER NOT NULL);
+
+  CREATE TABLE IF NOT EXISTS investor_interest(id INTEGER PRIMARY KEY, venture_id INTEGER NOT NULL, investor_id INTEGER NOT NULL, note TEXT NOT NULL, created_at INTEGER NOT NULL, UNIQUE(venture_id,investor_id));
+
+  CREATE TABLE IF NOT EXISTS published_ventures(venture_id INTEGER PRIMARY KEY, approved_by INTEGER NOT NULL, created_at INTEGER NOT NULL);
+
+  CREATE TABLE IF NOT EXISTS uploads(id INTEGER PRIMARY KEY, venture_id INTEGER NOT NULL, user_id INTEGER NOT NULL, stage INTEGER, deliverable TEXT, filename TEXT NOT NULL, content_type TEXT NOT NULL, sha256 TEXT NOT NULL, bytes INTEGER NOT NULL, created_at INTEGER NOT NULL);
+
+  CREATE TABLE IF NOT EXISTS assessment_runs(id INTEGER PRIMARY KEY, venture_id INTEGER NOT NULL, user_id INTEGER NOT NULL, score INTEGER NOT NULL, scores_json TEXT NOT NULL, created_at INTEGER NOT NULL);
+
+  ''')
+
+ app.include_router(router)
+
+
+
+def deps():return _db
+
+
+
+def reviewer(req):
+
+ conn,auth,csrf,owner,now=deps();u=auth(req)
+
+ with conn() as c:r=c.execute('SELECT role FROM reviewer_accounts WHERE user_id=?',(u['id'],)).fetchone()
+
+ if u['role']=='admin':return u
+ if u['role']!='investor' or not r:raise HTTPException(403,'Authorised investor reviewer or administrator required')
+
+ return u
+
+
+
+# Reviewer activation requires a server-side secret configured before launch. Never expose in UI.
+
+@router.post('/reviewer/activate')
+
+async def activate(req:Request):
+
+ conn,auth,csrf,owner,now=deps();u=auth(req);csrf(req,u)
+
+ secret=os.getenv('MULASTREAM_REVIEWER_SETUP_SECRET','')
+
+ if len(secret)<20 or os.getenv('MULASTREAM_ALLOW_INVESTOR_SELF_ACTIVATION')!='1':raise HTTPException(503,'Ask an administrator to authorise your reviewer account')
+
+ d=await req.json()
+
+ if not secrets.compare_digest(str(d.get('secret','')),secret):raise HTTPException(403,'Invalid setup secret')
+
+ if u['role']!='investor':raise HTTPException(403,'Only investor accounts can activate reviewer access')
+ with conn() as c:c.execute("INSERT INTO reviewer_accounts(user_id,role) VALUES(?,'mentor') ON CONFLICT(user_id) DO UPDATE SET role='mentor'",(u['id'],))
+
+ return {'ok':True,'role':'mentor'}
+
+
+
+@router.get('/review/queue')
+
+def queue(req:Request):
+
+ reviewer(req);conn,auth,csrf,owner,now=deps()
+
+ with conn() as c:return [dict(x) for x in c.execute('''SELECT s.id,s.venture_id,v.name venture,s.stage,s.deliverable,s.narrative,s.evidence_ref,s.ai_score,s.ai_feedback,s.reviewer_status FROM stage_submissions s JOIN ventures v ON v.id=s.venture_id WHERE s.reviewer_status!='approved' ORDER BY s.created_at DESC LIMIT 100''')]
+
+
+
+@router.post('/review/{submission_id}')
+
+async def review(req:Request,submission_id:int):
+
+ u=reviewer(req);conn,auth,csrf,owner,now=deps();csrf(req,u);d=await req.json()
+
+ decision=str(d.get('decision',''));reason=str(d.get('reason','')).strip()[:1000]
+
+ if decision not in ('approved','needs_changes','rejected') or len(reason)<12:raise HTTPException(400,'Decision and detailed reason required')
+
+ with conn() as c:
+
+  s=c.execute('SELECT * FROM stage_submissions WHERE id=?',(submission_id,)).fetchone()
+
+  if not s:raise HTTPException(404,'Submission not found')
+  if s['user_id']==u['id']:raise HTTPException(403,'Cannot review your own submission')
+  if s['reviewer_status']=='approved':raise HTTPException(409,'Approved submissions cannot be reviewed again')
+
+  if decision=='approved' and (s['ai_score']<70 or not s['evidence_ref']):raise HTTPException(400,'First resolve draft deficiencies and provide traceable evidence')
+
+  c.execute('UPDATE stage_submissions SET reviewer_status=? WHERE id=?',(decision,submission_id))
+
+  c.execute('INSERT INTO review_events(venture_id,stage,deliverable,actor,decision,reason,created_at) VALUES(?,?,?,?,?,?,?)',(s['venture_id'],s['stage'],s['deliverable'],u['id'],decision,reason,now()))
+
+  if decision=='approved':
+
+   event='deliverable:'+str(submission_id)
+
+   c.execute('INSERT OR IGNORE INTO rewards(venture_id,user_id,event_key,points,reason,created_at) VALUES(?,?,?,?,?,?)',(s['venture_id'],s['user_id'],event,30,'Reviewer-accepted deliverable: '+s['deliverable'],now()))
+
+  else:
+
+   c.execute('DELETE FROM rewards WHERE event_key=?',('deliverable:'+str(submission_id),))
+
+ return {'ok':True,'status':decision}
+
+
+
+CRITERIA=[('Innovation',10),('Market opportunity',10),('Scalability',8),('Revenue potential',10),('Profitability',10),('Competitive advantage',7),('Customer validation',15),('Financial viability',15),('Execution capacity',8),('Investment readiness',7)]
+
+GROUPS={
+
+ 'Innovation':[1,2], 'Market opportunity':[2], 'Scalability':[3,4], 'Revenue potential':[3,5],
+
+ 'Profitability':[3,5], 'Competitive advantage':[2,4], 'Customer validation':[2],
+
+ 'Financial viability':[3,5,7], 'Execution capacity':[1,4,6], 'Investment readiness':[6,7,8]}
+
+
+
+def calculate(c,vid):
+
+ rows=[dict(x) for x in c.execute('SELECT stage,ai_score,reviewer_status FROM stage_submissions WHERE venture_id=?',(vid,))]
+
+ result=[]
+
+ for label,weight in CRITERIA:
+
+  stages=GROUPS[label]; all_expected=sum(len(STAGES[s-1]['deliverables']) for s in stages)
+
+  verified=sum(1 for x in rows if x['stage'] in stages and x['reviewer_status']=='approved')
+
+  reported=sum(1 for x in rows if x['stage'] in stages and x['reviewer_status']!='approved' and x['ai_score']>=70)
+
+  value=round(100*(verified+0.15*reported)/max(1,all_expected))
+
+  result.append({'criterion':label,'weight':weight,'score':value,'confidence':'medium' if verified else 'low','verified_items':verified,'unverified_drafts':reported})
+
+ return result,round(sum(x['score']*x['weight'] for x in result)/100)
+
+
+
+@router.get('/ventures/{vid}/assessment')
+
+def assessment(req:Request,vid:int):
+
+ conn,auth,csrf,owner,now=deps();u=auth(req)
+
+ with conn() as c:
+
+  owner(c,u['id'],vid);scores,overall=calculate(c,vid)
+
+  history=[dict(x) for x in c.execute('SELECT score,created_at FROM assessment_runs WHERE venture_id=? AND user_id=? ORDER BY id DESC LIMIT 20',(vid,u['id']))]
+
+ return {'overall':overall,'criteria':scores,'history':history,'interpretation':'Evidence coverage proxy, NOT an AI-evaluated business quality rating or investment certification. Unverified narratives carry only limited draft credit.'}
+
+
+
+@router.post('/ventures/{vid}/assessment')
+
+def save_assessment(req:Request,vid:int):
+
+ conn,auth,csrf,owner,now=deps();u=auth(req);csrf(req,u)
+
+ with conn() as c:
+
+  owner(c,u['id'],vid);scores,overall=calculate(c,vid)
+
+  c.execute('INSERT INTO assessment_runs(venture_id,user_id,score,scores_json,created_at) VALUES(?,?,?,?,?)',(vid,u['id'],overall,json.dumps(scores),now()))
+
+ return {'overall':overall,'criteria':scores,'saved':True}
+
+
+
+@router.get('/ventures/{vid}/rewards')
+
+def get_rewards(req:Request,vid:int):
+
+ conn,auth,csrf,owner,now=deps();u=auth(req)
+
+ with conn() as c:
+
+  owner(c,u['id'],vid)
+
+  rows=[dict(x) for x in c.execute('SELECT points,reason,created_at FROM rewards WHERE venture_id=? AND user_id=? ORDER BY id DESC',(vid,u['id']))]
+
+  approved=[dict(x) for x in c.execute('SELECT stage,deliverable FROM stage_submissions WHERE venture_id=? AND reviewer_status=?',(vid,'approved'))]
+
+  badges=[{'name':r['deliverable'],'stage':r['stage']} for r in approved]
+
+ return {'points':sum(x['points'] for x in rows),'badge_count':len(badges),'badges':badges,'events':rows,'notice':'Demo points represent documented reviewer actions, not digital assets or financial tokens.'}
+
+
+
+@router.post('/ventures/{vid}/publish')
+
+def publish(req:Request,vid:int):
+
+ u=reviewer(req);conn,auth,csrf,owner,now=deps();csrf(req,u)
+
+ with conn() as c:
+
+  venture=c.execute('SELECT * FROM ventures WHERE id=?',(vid,)).fetchone()
+
+  if not venture:raise HTTPException(404,'Venture not found')
+
+  approved=c.execute('SELECT stage,deliverable FROM stage_submissions WHERE venture_id=? AND reviewer_status=?',(vid,'approved')).fetchall()
+
+  for s in STAGES:
+
+   if any(not any(r['stage']==s['number'] and r['deliverable']==d for r in approved) for d in s['deliverables']):raise HTTPException(400,'Cannot publish: stage '+str(s['number'])+' missing reviewed deliverables')
+
+  c.execute('INSERT OR REPLACE INTO published_ventures VALUES(?,?,?)',(vid,u['id'],now()))
+
+ return {'ok':True,'notice':'Listed for prototype interest only. Not an offer of securities.'}
+
+
+
+@router.get('/investor/opportunities')
+
+def opportunities(req:Request):
+
+ conn,auth,csrf,owner,now=deps();u=auth(req)
+
+ if u['role']!='investor':raise HTTPException(403,'Investor account required')
+
+ with conn() as c:
+
+  rows=[dict(x) for x in c.execute('''SELECT v.id,v.name,v.industry,v.location,v.problem,v.proposition,p.created_at FROM published_ventures p JOIN ventures v ON v.id=p.venture_id ORDER BY p.created_at DESC''')]
+
+  for r in rows:
+
+   _,r['readiness_score']=calculate(c,r['id'])
+
+ return {'opportunities':rows,'notice':'Reviewer-approved prototype listings only. No real investment or commitment.'}
+
+
+
+@router.post('/investor/opportunities/{vid}/interest')
+
+async def interest(req:Request,vid:int):
+
+ conn,auth,csrf,owner,now=deps();u=auth(req);csrf(req,u)
+
+ if u['role']!='investor':raise HTTPException(403,'Investor account required')
+
+ d=await req.json();note=str(d.get('note',''))[:1000]
+
+ with conn() as c:
+
+  if not c.execute('SELECT 1 FROM published_ventures WHERE venture_id=?',(vid,)).fetchone():raise HTTPException(404,'Opportunity not available')
+
+  c.execute('INSERT INTO investor_interest(venture_id,investor_id,note,created_at) VALUES(?,?,?,?) ON CONFLICT(venture_id,investor_id) DO UPDATE SET note=excluded.note,created_at=excluded.created_at',(vid,u['id'],note,now()))
+
+ return {'ok':True,'notice':'Expression of interest recorded; no binding financial commitment.'}
+
+
+
+@router.get('/ventures/{vid}/investor-interest')
+
+def founder_interest(req:Request,vid:int):
+
+ conn,auth,csrf,owner,now=deps();u=auth(req)
+
+ with conn() as c:
+
+  owner(c,u['id'],vid)
+
+  return [{'created_at':r['created_at'],'note':r['note']} for r in c.execute('SELECT created_at,note FROM investor_interest WHERE venture_id=? ORDER BY created_at DESC',(vid,))]
+
+
+
+@router.post('/ventures/{vid}/upload')
+
+async def upload(req:Request,vid:int):
+
+ from fastapi import UploadFile
+
+ conn,auth,csrf,owner,now=deps();u=auth(req);csrf(req,u)
+
+ form=await req.form();file=form.get('file')
+
+ if file is None or not hasattr(file,'read') or not hasattr(file,'filename'):raise HTTPException(400,'File required')
+
+ filename=Path(str(file.filename or 'attachment')).name[:120]
+
+ ext=Path(filename).suffix.lower()
+
+ allowed={'.pdf': 'application/pdf','.txt':'text/plain','.csv':'text/csv','.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','.xlsx':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg'}
+
+ if ext not in allowed:raise HTTPException(400,'Unsupported file type')
+
+ blob=await file.read(5*1024*1024+1)
+
+ if len(blob)>5*1024*1024:raise HTTPException(413,'Maximum file size 5 MB')
+
+ sha=hashlib.sha256(blob).hexdigest()
+
+ if ext=='.pdf' and not blob.startswith(b'%PDF'):raise HTTPException(400,'File content does not match extension')
+
+ if ext in ('.docx','.xlsx') and not blob.startswith(b'PK'):raise HTTPException(400,'File content does not match extension')
+
+ if ext=='.png' and not blob.startswith(b'\x89PNG'):raise HTTPException(400,'File content does not match extension')
+
+ if ext in ('.jpg','.jpeg') and not blob.startswith(b'\xff\xd8'):raise HTTPException(400,'File content does not match extension')
+
+ stage=int(form.get('stage') or 0)
+
+ if stage not in range(0,9):raise HTTPException(400,'Invalid stage')
+
+ label=str(form.get('deliverable') or '')[:180]
+
+ with conn() as c:
+
+  owner(c,u['id'],vid)
+
+  cur=c.execute('INSERT INTO uploads(venture_id,user_id,stage,deliverable,filename,content_type,sha256,bytes,created_at) VALUES(?,?,?,?,?,?,?,?,?)',(vid,u['id'],stage,label,filename,allowed[ext],sha,len(blob),now()))
+
+  fileid=cur.lastrowid
+
+ directory=Path(os.getenv('VENTUREOS_DATA',str(Path(__file__).resolve().parent/'data')))/'evidence_files'
+
+ directory.mkdir(parents=True,exist_ok=True)
+
+ (directory/(str(fileid)+ext)).write_bytes(blob)
+
+ return {'id':fileid,'sha256':sha,'bytes':len(blob),'status':'unverified_pending_manual_review','notice':'File saved locally and hash recorded. No malware scan or independent authenticity verification performed; do not use sensitive documents in this demo.'}
+
+
+
+@router.get('/ventures/{vid}/uploads')
+
+def list_uploads(req:Request,vid:int):
+
+ conn,auth,csrf,owner,now=deps();u=auth(req)
+
+ with conn() as c:
+
+  owner(c,u['id'],vid)
+
+  return [dict(r) for r in c.execute('SELECT id,stage,deliverable,filename,sha256,bytes,created_at FROM uploads WHERE venture_id=? ORDER BY id DESC',(vid,))]
+
+
+# Administrator workspace. No review token is needed after admin login.
+def admin_only(req):
+ conn,auth,csrf,owner,now=deps();u=auth(req)
+ if u['role']!='admin':raise HTTPException(403,'Administrator account required')
+ return u
+
+@router.get('/admin/summary')
+def admin_summary(req:Request):
+ admin_only(req);conn,auth,csrf,owner,now=deps()
+ with conn() as c:
+  counts={key:c.execute('SELECT COUNT(*) FROM '+table).fetchone()[0] for key,table in [('users','users'),('ventures','ventures'),('submissions','stage_submissions'),('review_events','review_events'),('investor_interest','investor_interest')]}
+  counts['pending_reviews']=c.execute("SELECT COUNT(*) FROM stage_submissions WHERE reviewer_status!='approved'").fetchone()[0]
+  return counts
+
+@router.get('/admin/users')
+def admin_users(req:Request):
+ admin_only(req);conn,auth,csrf,owner,now=deps()
+ with conn() as c:
+  return [dict(x) for x in c.execute("""SELECT u.id,u.name,u.email,u.role,u.created_at,
+     EXISTS(SELECT 1 FROM admin_accounts a WHERE a.user_id=u.id) is_admin,
+     EXISTS(SELECT 1 FROM reviewer_accounts r WHERE r.user_id=u.id) is_reviewer
+     FROM users u ORDER BY u.id DESC LIMIT 300""")]
+
+@router.post('/admin/users/{uid}/reviewer')
+async def admin_set_reviewer(req:Request,uid:int):
+ u=admin_only(req);conn,auth,csrf,owner,now=deps();csrf(req,u)
+ data=await req.json();enabled=data.get('enabled')
+ if not isinstance(enabled,bool):raise HTTPException(400,'enabled must be boolean')
+ with conn() as c:
+  user=c.execute('SELECT role FROM users WHERE id=?',(uid,)).fetchone()
+  if not user:raise HTTPException(404,'Account not found')
+  if user['role']!='investor':raise HTTPException(400,'Only investors can receive reviewer access')
+  if enabled:
+   c.execute("INSERT OR IGNORE INTO reviewer_accounts(user_id,role) VALUES(?,'mentor')",(uid,))
+  else:
+   c.execute('DELETE FROM reviewer_accounts WHERE user_id=?',(uid,))
+  c.execute("INSERT INTO admin_audit(actor,action,target,created_at) VALUES(?,?,?,?)",(u['id'],'grant_reviewer' if enabled else 'revoke_reviewer',str(uid),now()))
+ return {'ok':True,'reviewer':enabled}
+
+@router.get('/admin/audit')
+def admin_audit(req:Request):
+ admin_only(req);conn,auth,csrf,owner,now=deps()
+ with conn() as c:
+  reviews=[dict(r) for r in c.execute('SELECT actor,decision action,deliverable target,created_at FROM review_events ORDER BY id DESC LIMIT 100')]
+  admin=[dict(r) for r in c.execute('SELECT actor,action,target,created_at FROM admin_audit ORDER BY id DESC LIMIT 100')]
+  return sorted(reviews+admin,key=lambda r:r['created_at'],reverse=True)[:100]
+
+@router.get('/review/status')
+def review_status(req:Request):
+ conn,auth,csrf,owner,now=deps();u=auth(req)
+ if u['role']=='admin':return {'allowed':True,'role':'admin'}
+ with conn() as c:
+  active=bool(c.execute('SELECT 1 FROM reviewer_accounts WHERE user_id=?',(u['id'],)).fetchone()) if u['role']=='investor' else False
+ return {'allowed':active,'role':'investor_reviewer' if active else u['role']}

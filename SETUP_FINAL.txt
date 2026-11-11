@@ -1,0 +1,15 @@
+MULASTREAM UNIFIED HACKATHON WORKSPACE
+
+1. This is the folder to open in VS Code (the folder with app.py).
+2. Install: python -m pip install -r requirements.txt
+3. Gemini chatbot: use START_GEMINI_WINDOWS.bat, enter API key privately.
+4. Mentor demo: set the MULASTREAM_REVIEWER_SETUP_SECRET environment variable (20+ random characters) BEFORE running the server. Register a separate test account, sign in, open Mentor reviews, and enter secret once to grant mentor status.
+5. Founder: create venture, submit stage deliverables, attach non-sensitive mock evidence under Readiness & rewards.
+6. Mentor: review submitted material, manually check it, choose approve or needs changes. Validated submissions receive points.
+7. Investor: create investor account and open Investor opportunities. Only reviewer-published completed ventures are visible. No financial transactions.
+8. The publish endpoint is POST /api/ventures/{vid}/publish from an authenticated reviewer and requires all deliverables approved. This is intentionally difficult to satisfy; use demo submissions, not bogus production data.
+9. Twilio webhook and WhatsApp account linking NOT YET IMPLEMENTED. Do not point ngrok to this development server until it is separately secured.
+10. Uploaded evidence is stored as unverified local files. NO malware scanning or independent document authenticity detection. Do not upload real sensitive information.
+11. Assessment is evidence-coverage weighted, not a certified ten-criterion financial due diligence assessment.
+12. DO NOT promise investor funding or call these reward points cryptocurrency.
+13. Existing data not included; only copy a backed-up ventureos.sqlite3 from your previous trusted folder with servers stopped.

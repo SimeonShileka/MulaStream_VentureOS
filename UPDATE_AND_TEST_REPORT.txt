@@ -1,0 +1,41 @@
+MULASTREAM VENTUREOS — CONSOLIDATED IN-PLACE UPDATE
+24 October 2026
+
+SOURCE: Uploaded MulaStream_VentureOS_WHATSAPP_READY (10).zip
+
+INSTRUCTIONS: KEEP YOUR CURRENT PROJECT FOLDER.
+1. Stop the current Uvicorn server with Ctrl+C.
+2. Back up your current MulaStream_VentureOS_FINAL_WORKSPACE directory, including the private data folder, LOCALLY.
+3. Copy the changed application files from UPDATE_FILES_ONLY into your current project, preserving paths. Do not copy over or delete the data folder.
+4. Start: python -m uvicorn app:app --host 127.0.0.1 --port 8501
+5. Browser: http://127.0.0.1:8501 ; hard-refresh with Ctrl+F5.
+
+TESTED in an isolated temporary SQLite database:
+- Home page and static app.js served by FastAPI.
+- Account registration and sign in.
+- Venture creation and retrieval.
+- Evidence creation, editing, deleting, and CSRF rejection.
+- Incubator status starts with zero approved stages.
+- Health status shows Gemini configuration, not Ollama.
+- Unconfigured WhatsApp webhook rejects requests.
+- Python compile and JavaScript syntax check.
+
+FIXES IN THIS UPDATE:
+- Evidence Ledger now supports search, status filtering, edit and delete for unreviewed items.
+- Evidence details and supporting-upload navigation are visible from Ledger.
+- Evidence edit/delete REST endpoints enforce ownership, CSRF and immutability once reviewed.
+- Incubator stage progression requires all relevant deliverables to be reviewer-approved; scores alone do not pass a stage.
+- AI status shows Gemini configuration instead of checking the unrelated Ollama server.
+- Approved source retrieval recognises SITE-STATED and compound confirmed statuses, while skipping TBC/CONFLICT/UNVERIFIED.
+- Investor-only and entrepreneur-only knowledge chunks get tier filtering.
+
+IMPORTANT LIMITATIONS:
+- The supplied project remains a hackathon prototype, NOT a production investment platform.
+- A live Gemini response and live WhatsApp exchange require your own configured accounts and cannot be validated by the offline automated tests.
+- A saved claim or uploaded file is not authenticity-verified. Ledger entries do not currently have a dedicated human review action, distinct from incubator submission review.
+- The extensive Training Pack's complete safety and retrieval evaluation suite has NOT been run, and cross-channel web/WhatsApp identity linking is NOT implemented.
+- Investor opportunities appear only after a human reviewer publishes a venture whose required stage submissions are approved; a fresh project therefore correctly shows no listings.
+- The reviewer activation requires a server-side secret and is restricted to the demo setup; review processing does not replace due diligence.
+- Full end-to-end browser clicking tests have NOT been run in this environment; backend workflow/syntax tests passed.
+
+Do NOT expose the development server through ngrok as a public website without a security review. To use the Twilio sandbox, use the existing WHATSAPP_SETUP.txt in a controlled test.

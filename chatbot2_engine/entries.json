@@ -1,0 +1,436 @@
+[
+  {
+    "id": "K1-01",
+    "title": "What MulaStream is",
+    "tier": "PUBLIC",
+    "status": "CONFIRMED-PLATFORM",
+    "text": "CONFIRMED-PLATFORM | mulastream.com materials MulaStream is a Namibian investment crowdfunding platform that aims to make investing and business financing more accessible. It connects businesses that need capital with individuals, companies and institutional investors. It offers two routes: debt crowdfunding and equity crowdfunding. It is operated by Bellatrix Investment Managers, which has been admitted into the NAMFISA Regulatory Sandbox to test debt and equity crowdfunding in Namibia. The platform is being prepared for controlled testing. Ambition: Namibia first, then Southern Africa."
+  },
+  {
+    "id": "K1-02",
+    "title": "Why it exists",
+    "tier": "PUBLIC",
+    "status": "CONFIRMED-PLATFORM",
+    "text": "CONFIRMED-PLATFORM Many Namibian entrepreneurs and SMEs struggle to get finance from traditional banks, and many people who want to invest have few ways to invest directly in growing Namibian businesses. MulaStream aims to bridge this gap, help businesses grow and create jobs, and help more Namibians take part in business growth."
+  },
+  {
+    "id": "K1-03",
+    "title": "The NAMFISA Regulatory Sandbox (replaces v1.0)",
+    "tier": "PUBLIC",
+    "status": "VERIFIED-SOURCE",
+    "text": "VERIFIED-SOURCE | namfisa.com.na/regulatory-sandbox, 24/10/2026 A regulatory sandbox lets start-ups and other innovators test new ideas live, on a limited scale, under the supervision of the sector regulator. NAMFISA says its sandbox exists to promote digital and non-digital financial services innovation and financial inclusion in the non-bank sector. NAMFISA's page lists crowdfunding and peer-to-peer lending as its focus. It describes investment-based crowdfunding as raising capital online from many investors in exchange for instruments such as shares or debt securities, and peer-to-peer lending as matching borrowers and lenders on a platform. Each sandbox cohort is specific to a regulated industry. Entrants can be licensed firms deploying a new product that may not fit current rules, or start-ups inhibited by current legislation. The page links a 'Crowdfunding Guidelines' document and a 'Cohort 2' call for applications and process note for crowdfunding and P2P (application deadline shown as 23/02/2026). Press reports say the sandbox opened in May 2023 with a micro-lending cohort. Sandbox queries: fintechsquare@namfisa.com.na, +264 61 290 5008. Not found: a public list naming Bellatrix or MulaStream as a participant. The pack's statement that Bellatrix was admitted comes from your uploaded documents (CONFIRMED-PLATFORM); compliance should attach NAMFISA's admission letter. For users: testing is supervised, so features, limits and terms may change. Say this plainly."
+  },
+  {
+    "id": "K1-04",
+    "title": "FIMA and the NAMFISA Act (replaces v1.0, now usable after sign-off)",
+    "tier": "PUBLIC",
+    "status": "VERIFIED-SOURCE",
+    "text": "VERIFIED-SOURCE (multiple outlets) | economist.com.na 06/05/2026; informante.web.na; ensafrica.com; namiblii.org The Financial Institutions and Markets Act, 2021 (Act 2 of 2021, FIMA) and the NAMFISA Act (Act 3 of 2021) came into force on 1 May 2026, after determinations by the Minister of Finance published in the Government Gazette, according to NAMFISA's statement as reported in the press. FIMA consolidates earlier separate laws for the non-bank financial sector under one framework. Discrepancy: one law-firm article gives 30 April 2026; use 1 May 2026 until compliance confirms against the Gazette. Held back: the Minister said provisions that refer to the Financial Services Adjudicator Act are kept in abeyance and not operational, and the proposed 75 percent pension preservation rule is on hold. Do not tell users that a financial services adjudicator is available. Approved wording for the bot: 'New laws for Namibia's non-bank financial sector, called FIMA and the NAMFISA Act, came into force on 1 May 2026. MulaStream is being tested under NAMFISA's sandbox. Ask the team how these rules apply to your investment.' The bot never says how FIMA applies to a particular product."
+  },
+  {
+    "id": "K1-05",
+    "title": "How the two routes differ",
+    "tier": "PUBLIC",
+    "status": "CONFIRMED-PLATFORM",
+    "text": "CONFIRMED-PLATFORM Debt: investors lend money and, over time, get their capital back plus a variable return linked to the financing opportunities. Equity: investors acquire an ownership interest in the business through the platform's investment trust structure and can benefit from potential dividends and long- term capital appreciation. One platform, two funding solutions."
+  },
+  {
+    "id": "K1-06",
+    "title": "Who can use it",
+    "tier": "PUBLIC",
+    "status": "TBC",
+    "text": "TBC Investors: individuals, companies and institutions. Businesses: startups and SMEs. Eligibility rules, residency, minimum age and any investor limits under the sandbox: {{TBC from MulaStream}}."
+  },
+  {
+    "id": "K1-07",
+    "title": "Talk to a person",
+    "tier": "PUBLIC",
+    "status": "TBC",
+    "text": "TBC Contact channel, hours and email: {{TBC}}. The bot offers a handoff whenever it cannot answer."
+  },
+  {
+    "id": "K1-08",
+    "title": "MulaStream website",
+    "tier": "PUBLIC",
+    "status": "SITE-STATED",
+    "text": "SITE-STATED | mulastream.com, 24/10/2026 MulaStream presents itself as an investment platform that addresses the difficulty of raising pre-seed capital for startups in Africa, starting in Namibia and expanding to Southern Africa and beyond. Headline theme: bridging investors and innovators. Four service labels: discover investable startups, find investors, facilitate investments, AI business analytics. Educate Investors: builds investment knowledge, learns investor preferences, identifies suitable opportunities. Prepare Startups: a technology-driven due diligence and valuation process so startups are funding-ready. Mitigate Risks: well-packaged startups lower risk for investors (the bot must never say risk is removed). AI-Powered Analysis: investors can get an instant, in-depth analysis of a startup covering financial health, market position and ROI. AI Startup Mentor: founders get actionable feedback, improvement suggestions and a strategic roadmap. Smart Financial Tools: an AI-assisted DCF valuation calculator that suggests discount and growth rates from a risk profile. The mission statement repeats the pre-seed funding gap and the investor-education plus startup-preparation approach. Page footer: copyright 2026, links to Contact, Terms of Service (placeholder, no page), Privacy, Log in, Sign up, and a chatbot toggle."
+  },
+  {
+    "id": "K1-09",
+    "title": "What the two websites do not say",
+    "tier": "PUBLIC",
+    "status": "SITE-STATED",
+    "text": "SITE-STATED (gap list) | both sites, 24/10/2026 Neither site mentions crowdfunding, debt or equity routes, the 30 to 120 day debt term, the NAMFISA Regulatory Sandbox, fees, minimum investment, return ranges, eligibility rules, withdrawal rights or risk warnings. Bellatrix's site says it is NAMFISA-licensed but does not mention the sandbox. So every sandbox and crowdfunding statement in this pack rests on your uploaded challenge documents and NAMFISA's own pages, not on the public sites. Compliance should align the public wording with what the bot says. Until then the bot must not imply the websites confirm the crowdfunding model."
+  },
+  {
+    "id": "K1-10",
+    "title": "About Bellatrix Investment Managers",
+    "tier": "PUBLIC",
+    "status": "SITE-STATED",
+    "text": "SITE-STATED | bellatrixinvest.com/aboutus.html Founded 2020 to close financing gaps for underserved markets. Describes itself as a Namibian-registered (Pty) Ltd and a NAMFISA-licensed unlisted investment management company offering alternative investment solutions across asset classes including private debt and equity. Focus: financing, investing in and supporting early-stage businesses, especially SMEs and startups, across Southern Africa. Home-page tagline: fuelling growth in Southern Africa; funds that combine competitive returns with real economic impact. Values: integrity, partnership, innovation, commitment. Social channels: Facebook (Bellatrixinvest), X (BellatrixInves1), LinkedIn (Bellatrix Investment Managers). The bot should say the licence is the company's own statement and point to NAMFISA's register of institutions (namfisa.com.na) to check it."
+  },
+  {
+    "id": "K1-11",
+    "title": "Bellatrix funds",
+    "tier": "PUBLIC",
+    "status": "SITE-STATED",
+    "text": "SITE-STATED | bellatrixinvest.com/funds.html and fund pages Four funds. Terms such as rates, tenors and minimums are not published. Fund What it is Instruments Stated outcome SME Debt Fund Flagship, launched 11/2021. Short to medium-term debt for Namibian SMEs with procurement and working-capital needs. Site says it has financed over 500 SME loans. Purchase order finance (confirmed POs from ministries, local authorities, state-owned enterprises or reputable private firms); invoice discounting; performance guarantee finance; working capital Job creation; stronger SME resilience Consumer Credit Fund Wholesale debt to NAMFISA-regulated micro-lenders, not to individuals. Lenders use it to grow loan books and reach underserved communities. Wholesale debt facilities Financial inclusion; responsible lending Mining Fund Early-stage and junior mining in Southern Africa; base metals, rare earths, critical minerals; ESG focus; rural jobs. Royalties and streaming, convertible debt, equity-linked Local content; ESG-aligned growth Startup Seed Fund Equity for pre-seed and seed startups; sector-agnostic; typically minority stakes; support via business development, mentorship and the Basecamp Business Incubator. Pre-seed and seed equity, mentorship, incubation Catalytic for ecosystem; attracts follow-on investors Site error to flag: on the SME Debt Fund page the Invoice Discounting description repeats the Performance Guarantee text. The bot must not describe invoice discounting from that page; use K2-03 and ask Bellatrix for the correct description. Note also that the SME Debt Fund's products (purchase order, invoice, working capital) overlap with MulaStream's debt route in K2-02. Whether MulaStream listings are funded by this fund, by individual investors, or both is TBC."
+  },
+  {
+    "id": "K1-12",
+    "title": "How to apply or invest with Bellatrix",
+    "tier": "PUBLIC",
+    "status": "SITE-STATED",
+    "text": "SITE-STATED | bellatrixinvest.com apply-funding, applytoday, invest pages Seeking funding: choose the fund, apply, Bellatrix reviews and gives feedback or approval, then you receive financing. The form asks for full name, email, entity name, entity type (Pty Ltd, trust, sole proprietor or close corporation), phone, the amount in N$ and the fund. You can also email admin@bellatrixinvest.com. Investing in a Bellatrix fund: first complete Know Your Customer verification through the IDToday e-KYC service; Bellatrix then contacts you to finish onboarding. Existing Bellatrix Debt Fund investors top up through an Additional Investment form that asks for entity type, registration, passport or ID number, phone, amount and source of funds. Bot rule: explain the steps, but never ask for ID numbers, passport numbers, bank details or source-of-funds details in chat; send the person to the official form. The MulaStream investor verification process is not described on either site: TBC."
+  },
+  {
+    "id": "K1-13",
+    "title": "Contact details (fills part of K1-07)",
+    "tier": "PUBLIC",
+    "status": "SITE-STATED",
+    "text": "SITE-STATED | bellatrixinvest.com/contact.html Email admin@bellatrixinvest.com. Phone +264 61 256 521 or +264 81 282 8334. Office: 1184 Johnson Street, Eros, Windhoek, Namibia. Opening hours are not published: TBC. Whether this is also MulaStream's support channel, and whether MulaStream has its own support address (the site only shows a Contact link): TBC. For regulator matters use the NAMFISA contacts in K1-18."
+  },
+  {
+    "id": "K1-14",
+    "title": "Bellatrix people",
+    "tier": "PUBLIC",
+    "status": "SITE-STATED",
+    "text": "SITE-STATED | bellatrixinvest.com/team.html Share only if asked who runs the platform. Investment team: Jesaya Hano-Oshike, Managing Director and Portfolio Manager (BCom Economics and Finance, BCom Honours Economics, diploma in investment analysis and portfolio management, advanced diploma in bank management); Paulina Kamati, Investment Analyst (BSc Honours Financial Mathematics, CFA Level I candidate); Tuyamba Akwaake, Investment Analyst (BA Honours Business Management); Fabius Paulus, Junior Investment Analyst (BA Honours Economics); Chantal Claasen, Value Add Analyst (BSocSci Honours, organisational psychology and industrial sociology); Kumbee Tjirimuje, Junior Legal and Compliance Officer (LLB). Board: Jesaya Hano-Oshike; Rafael Kalumbu (BSc Honours Mining Engineering); Jenny Mbwale (listed as Risk Analyst at the Bank of Namibia; BCom Honours Economics, Master's in Finance and Investments); Megameno Shetunyenga, CA (Nam)(SA) (BCom Honours Accounting)."
+  },
+  {
+    "id": "K1-15",
+    "title": "Learning content on the Bellatrix site",
+    "tier": "PUBLIC",
+    "status": "SITE-STATED",
+    "text": "SITE-STATED | bellatrixinvest.com home page The home page promotes the Namibia Business Angel Network (NABAN) Startup Success Series, Edition 5, on positioning Namibian startups for success: innovation and ideation, business model development, team building, scaling and funding, with advice from experienced business leaders. It also embeds a Y Combinator Startup School talk by YC Group Partner Brad Flora on how modern startup fundraising works. The bot may point founders to both as free learning but must not summarise or quote them."
+  },
+  {
+    "id": "K1-16",
+    "title": "Ndjaba Seed Fund (reported, not on either site)",
+    "tier": "PUBLIC",
+    "status": "Secondary",
+    "text": "Secondary: podcast interview, 25/05/2026 | techaways.substack.com In an interview, Bellatrix's Managing Director described a new US$10 million venture vehicle, the Ndjaba Seed Fund, to back 35 to 50 Southern African startups over 10 years in sectors such as fintech, healthcare, agriculture value chains, cleantech, e-commerce and enterprise software. Pre-seed cheques were described as roughly US$25,000 to US$150,000 for startups past the idea stage (MVP, early users or limited traction); most capital is for seed-stage businesses with traction or revenue. Stakes are intended to be minority, generally under 30 percent; equity first, with convertible debt or SAFEs case by case. Support covers governance, operations, marketing, finance and regional expansion, helped by Basecamp Business Incubator, said to have worked with more than 3,000 entrepreneurs over about three and a half years. The article gives mulastream.com as the application form. Bot rule: say this was reported in an interview and is not an offer or confirmed terms; never promise a cheque size or a stake. How Ndjaba relates to the Startup Seed Fund on Bellatrix's site is TBC."
+  },
+  {
+    "id": "K1-17",
+    "title": "Guardrails arising from the website claims",
+    "tier": "ALL",
+    "status": "Design rule",
+    "text": "Design rule | derived from K1-08 to K1-16 1. AI analysis mentions ROI: the bot gives no ROI figure unless it comes from get_opportunity scenarios, and always shows assumptions and risks. 2. DCF tool: say valuations are estimates that swing widely with the discount and growth rates chosen; show a sensitivity range. 3. 'Mitigate risks': never say MulaStream removes or eliminates risk; due diligence reduces but does not remove it. 4. Do not call a startup 'investable' or 'ready' unless the system says Investment Ready. 5. Bellatrix fund terms are unpublished: say so and offer a human. 6. Do not name individuals from K1-14 unless asked who runs the platform."
+  },
+  {
+    "id": "K1-18",
+    "title": "Complaints, consumer education and regulator contacts",
+    "tier": "PUBLIC",
+    "status": "VERIFIED-SOURCE",
+    "text": "VERIFIED-SOURCE | namfisa.com.na, 24/10/2026 NAMFISA publishes a consumer complaints form and a general feedback form on its website and runs a consumer education site (educates.namfisa.com.na). General line +264 61 290 5000, info@namfisa.com.na; office at Gutenberg Plaza, 51-55 Werner List Street, Windhoek. The consumer education address printed on the page appears to contain a typo (ends .na.na); tell users to use the website form. Whistleblower line shown: 0800 222 333. The bot offers these when a user says they want to complain about a regulated firm, after first offering the MulaStream human contact. It does not predict the outcome of any complaint."
+  },
+  {
+    "id": "K2-01",
+    "title": "What debt crowdfunding is",
+    "tier": "PUBLIC",
+    "status": "CONFIRMED-PLATFORM",
+    "text": "CONFIRMED-PLATFORM + GENERAL- EDUCATION Debt crowdfunding (also called peer-to-peer or P2P lending) lets many investors lend to a business through an online platform. The business must repay the borrowed capital, plus agreed or variable returns, over a set period. The business keeps full ownership."
+  },
+  {
+    "id": "K2-02",
+    "title": "MulaStream's debt product",
+    "tier": "PUBLIC",
+    "status": "CONFIRMED-PLATFORM",
+    "text": "CONFIRMED-PLATFORM Short-term working-capital financing for businesses that have a verified contract, purchase order or invoice but need money to deliver on it. Funding terms are short, 30 to 120 days. Businesses keep full ownership. Investors may earn variable returns depending on how the underlying financing opportunities perform."
+  },
+  {
+    "id": "K2-03",
+    "title": "Why invoice, contract and purchase-order financing exists",
+    "tier": "PUBLIC",
+    "status": "GENERAL-EDUCATION",
+    "text": "GENERAL- EDUCATION Small suppliers often win an order but must pay for stock, labour or transport before their customer pays them, sometimes 30 to 90 days later. That gap is a working-capital gap. Financing lets them deliver the order now and repay from the customer's payment. The strength of the deal depends on the customer paying on time, so the buyer's reliability and the quality of the documents matter."
+  },
+  {
+    "id": "K2-04",
+    "title": "How investor returns arise in debt",
+    "tier": "PUBLIC",
+    "status": "GENERAL-EDUCATION",
+    "text": "GENERAL-EDUCATION The business pays back the principal plus interest or a return. If the business repays in full, the investor's return is the interest or return earned. If it pays late or defaults, the investor may earn less or lose part or all of the capital. Illustration (not a promise): if an investor funds N$10,000 for 90 days and the agreed return were 3 percent for the period, repayment would be N$10,300 before any fees or tax. Real terms: {{TBC}}."
+  },
+  {
+    "id": "K2-05",
+    "title": "Risks of debt investing",
+    "tier": "PUBLIC",
+    "status": "GENERAL-EDUCATION",
+    "text": "GENERAL-EDUCATION 1. Default risk: the borrower may not repay. 2. Late payment: money may be locked longer than planned. 3. Concentration: putting too much in one deal. 4. Fraud or misrepresentation: documents may be false; this is why verification matters but never removes the risk. 5. Liquidity: you may not be able to withdraw early. 6. Platform and regulatory risk: the platform is in a sandbox and rules may change. 7. Returns are variable and not guaranteed. 8. Not a bank deposit."
+  },
+  {
+    "id": "K2-06",
+    "title": "What a borrower must show",
+    "tier": "ENTREPRENEUR",
+    "status": "CONFIRMED-PLATFORM + TBC",
+    "text": "CONFIRMED-PLATFORM + TBC Verified contract, purchase order or invoice; evidence of ability to deliver; business identity and registration; bank details; repayment source. Exact checklist, limits and costs: {{TBC}}."
+  },
+  {
+    "id": "K3-01",
+    "title": "What it is",
+    "tier": "PUBLIC",
+    "status": "CONFIRMED-PLATFORM + GENERAL-EDUCATION",
+    "text": "CONFIRMED-PLATFORM + GENERAL-EDUCATION Equity crowdfunding lets a business raise money by offering investors an ownership stake. On MulaStream, investors acquire beneficial ownership interests through the platform's investment trust structure. They may benefit from dividends if the business pays them and from capital appreciation if the business grows in value."
+  },
+  {
+    "id": "K3-02",
+    "title": "Why a founder might choose equity",
+    "tier": "ENTREPRENEUR",
+    "status": "GENERAL-EDUCATION",
+    "text": "GENERAL-EDUCATION No fixed repayment, so cash is not drained by loan instalments; suits businesses that need patient growth capital and can grow fast. Trade-offs: owning less of your own company (dilution), sharing information with investors, expectations about growth, and the effort of a raise."
+  },
+  {
+    "id": "K3-03",
+    "title": "Valuation and dilution in plain words",
+    "tier": "PUBLIC",
+    "status": "GENERAL-EDUCATION",
+    "text": "GENERAL-EDUCATION Pre-money valuation is what the business is judged to be worth before the new money. Post-money equals pre-money plus the amount raised. Investor percentage equals amount invested divided by post-money. Example: a business valued at N$4,000,000 before investment raises N$1,000,000. Post-money is N$5,000,000, so new investors own 20 percent and existing owners' share is reduced accordingly. Valuations are estimates and are usually negotiated or reviewed."
+  },
+  {
+    "id": "K3-04",
+    "title": "How investors can make or lose money in equity",
+    "tier": "PUBLIC",
+    "status": "GENERAL-EDUCATION",
+    "text": "GENERAL- EDUCATION Dividends (if profits are shared), a later sale of shares or of the business at a higher value, or a listing. Many early-stage businesses fail or grow slowly; equity investors can lose the entire amount; shares may be hard to sell (illiquid); future funding rounds can dilute ownership. Returns are not guaranteed."
+  },
+  {
+    "id": "K3-05",
+    "title": "Equity terms",
+    "tier": "PUBLIC",
+    "status": "TBC",
+    "text": "TBC Minimum investment, fees, trust structure details, dividend policy, lock-in, exit routes, investor protections, reporting: {{TBC}}. The bot must not invent them."
+  },
+  {
+    "id": "K4-01",
+    "title": "How to read an opportunity",
+    "tier": "PUBLIC",
+    "status": "GENERAL-EDUCATION",
+    "text": "GENERAL-EDUCATION Check: what the business does; who the customers are; how it makes money; how much it wants and what the money is for; the instrument (debt or equity); the term; what is verified versus founder-reported; the readiness score and its confidence; open conditions; risks; and what happens if things go wrong. Treat unverified claims with caution."
+  },
+  {
+    "id": "K4-02",
+    "title": "Expected return versus actual return",
+    "tier": "PUBLIC",
+    "status": "GENERAL-EDUCATION",
+    "text": "GENERAL-EDUCATION An expected return is an estimate based on assumptions. Actual returns can be lower, or negative. The bot shows downside, base and upside scenarios, states the assumptions, and never presents the base case as a promise."
+  },
+  {
+    "id": "K4-03",
+    "title": "Risk and return trade-off, diversification",
+    "tier": "PUBLIC",
+    "status": "GENERAL-EDUCATION",
+    "text": "GENERAL-EDUCATION Higher possible returns generally come with higher risk. Spreading small amounts across several opportunities reduces dependence on any one, but does not remove risk. Only invest money you can afford to lose; keep an emergency fund separate."
+  },
+  {
+    "id": "K4-04",
+    "title": "Investor due-diligence checklist",
+    "tier": "PUBLIC",
+    "status": "GENERAL-EDUCATION",
+    "text": "GENERAL-EDUCATION Is the business registered and tax-compliant? Who are the founders and what is their track record? Is demand evidenced by contracts or sales? Do the numbers reconcile? Are the use of funds and repayment or exit plans realistic? Are risks disclosed honestly? What are the open conditions? What can I not verify?"
+  },
+  {
+    "id": "K4-05",
+    "title": "Opportunities on the platform",
+    "tier": "INVESTOR",
+    "status": "live data",
+    "text": "live data The bot reads opportunities only through list_ready_startups and get_opportunity, never from memory. It states instrument, ask, term, readiness score and confidence, verification coverage, open conditions and key risks, then repeats the risk reminder."
+  },
+  {
+    "id": "K4-06",
+    "title": "Investor journey",
+    "tier": "PUBLIC",
+    "status": "TBC",
+    "text": "TBC detail Steps: register; verify identity and eligibility; acknowledge risks; browse opportunities; choose and commit an amount; pay as instructed; receive confirmation; receive progress reports. Details such as verification documents and payment methods: {{TBC}}."
+  },
+  {
+    "id": "K4-07",
+    "title": "What well-regulated crowdfunding platforms do (international benchmark)",
+    "tier": "PUBLIC",
+    "status": "VERIFIED-SOURCE",
+    "text": "VERIFIED-SOURCE (EU and US rules; not Namibian law) | EU Regulation 2020/1503 via AMF, Norton Rose, Skadden; SEC investor.gov Use only as education so investors know what good practice looks like. The bot must say clearly that these are foreign rules and that it does not know which of them MulaStream applies (TBC). EU model: for non-sophisticated investors, an entry knowledge test; a simulation of the ability to bear loss that is reviewed periodically; a reflection period of at least four calendar days in which an offer can be withdrawn without penalty; a standardised Key Investment Information Sheet for each project, prepared by the project owner and not approved by the regulator, carrying a risk warning that the money may be partly or wholly lost and is not covered by deposit guarantee schemes; and disclosure of default rates. US model: for non-accredited investors, annual limits tied to income or net worth, an investor-risk acknowledgement, and limits on reselling in the first year. Take-away for investors: ask whether the platform tests your understanding, lets you change your mind, gives a standard fact sheet, caps how much you can put in, and publishes how past deals actually performed."
+  },
+  {
+    "id": "K4-08",
+    "title": "Risk evidence from African alternative finance research",
+    "tier": "PUBLIC",
+    "status": "VERIFIED-SOURCE",
+    "text": "VERIFIED-SOURCE (older research) | Cambridge Centre for Alternative Finance, 2017; FSD Africa 2017 CCAF's 2017 report on Africa and the Middle East found the industry saw fraud as the greatest risk and that lack of bespoke regulation held markets back. A companion FSD Africa study listed default and business failure, with little historical data to benchmark performance, among key crowdfunding risks. The data are old; the bot uses them only to support the message that verification matters but never removes risk, and does not quote default rates for Namibia (none found)."
+  },
+  {
+    "id": "K4-09",
+    "title": "Questions to ask any crowdfunding platform",
+    "tier": "PUBLIC",
+    "status": "GENERAL-EDUCATION",
+    "text": "GENERAL-EDUCATION (derived from K4-07) | derived 1. Who regulates you and what is your licence or sandbox status? 2. What happens to my money if the platform fails? 3. How do you check borrowers and documents? 4. What were the actual default and late-payment rates on past deals? 5. What are all the fees, including any I pay on withdrawal? 6. Can I change my mind after committing? 7. Is there a limit on how much one person can invest? 8. Can I get my money out early? 9. Who do I complain to? The bot answers each with what is confirmed and marks the rest 'not yet confirmed' (see K1-06, K2-04, K3-05)."
+  },
+  {
+    "id": "K5-01",
+    "title": "Which funding fits",
+    "tier": "ENTREPRENEUR",
+    "status": "GENERAL-EDUCATION",
+    "text": "GENERAL-EDUCATION + CONFIRMED- PLATFORM Have an order, contract or invoice and need working capital to deliver within 30 to 120 days: debt route. Early or growing business that needs capital to scale and can offer ownership: equity route. Not sure: the bot asks about purpose, timing, cash flow and willingness to share ownership, then explains the fit (not a guarantee of eligibility)."
+  },
+  {
+    "id": "K5-02",
+    "title": "What investors look for",
+    "tier": "ENTREPRENEUR",
+    "status": "CONFIRMED-PLATFORM",
+    "text": "CONFIRMED-PLATFORM (ten criteria) Innovation, market opportunity, scalability, revenue potential, profitability, competitive advantage, customer validation, financial viability, execution capacity, investment readiness. Businesses must show evidence, not only plans."
+  },
+  {
+    "id": "K5-03",
+    "title": "Typical documents",
+    "tier": "ENTREPRENEUR",
+    "status": "GENERAL-EDUCATION + TBC",
+    "text": "GENERAL-EDUCATION + TBC Registration certificate; tax number and compliance status; founder IDs and profiles; business plan and concept note; financial statements or management accounts; bank statements; invoices, contracts or orders; market and customer evidence; financial projections; use of funds; governance documents. Platform-specific checklist: {{TBC}}."
+  },
+  {
+    "id": "K5-04",
+    "title": "Funding does not come automatically",
+    "tier": "ENTREPRENEUR",
+    "status": "GENERAL-EDUCATION",
+    "text": "CONFIRMED- PLATFORM Completing the programme does not guarantee funding. All applications remain subject to MulaStream's eligibility requirements, independent due diligence and investment approval."
+  },
+  {
+    "id": "K5-06",
+    "title": "Development Bank of Namibia (DBN) SME finance",
+    "tier": "ENTREPRENEUR",
+    "status": "VERIFIED-SOURCE",
+    "text": "VERIFIED-SOURCE | dbn.com.na/sme-finance; thebrief.com.na 30/06/2026; namibian.com.na 20/01/2026 DBN is state-owned. It defines an SME as turnover of N$10 million or less and states a minimum loan of N$150,000, usually with a maximum tenure of 10 years. It finances start-ups and growing firms in manufacturing, tourism, transport and logistics, business services, retail and wholesale, commercial property, construction, franchises and private education, including tender and contract finance, performance guarantees, trade finance, instalment sales for vehicles and assets, and business loans. Offices: the DBN SME Centre in Windhoek, Walvis Bay, Ongwediva and Rundu. A June 2026 report puts its single-project financing at about N$150,000 to N$380 million and says business registration is needed only after approval for some youth products. In 2024/25 it approved 49 SME projects, including N$51.5 million for women-owned and N$24.3 million for youth-owned enterprises. DBN also runs a skills-based facility for artisans and professionals aged 35 and under, and has introduced a venture capital mechanism for high-potential SMEs (details TBC). Comparison note: DBN offers contract-based finance, similar in purpose to K2-02 but with different terms and approval times."
+  },
+  {
+    "id": "K5-07",
+    "title": "DBN For Her (women entrepreneurs)",
+    "tier": "ENTREPRENEUR",
+    "status": "VERIFIED-SOURCE",
+    "text": "VERIFIED-SOURCE | dbn.com.na/dbn-for-her A facility for 100 percent women-owned Namibian enterprises with 5 to 300 employees in any sector. Loans of N$150,000 to N$10 million at the prime rate, with a 12-month interest-free period and a 12-month grace period on capital repayment."
+  },
+  {
+    "id": "K5-08",
+    "title": "National Youth Development Fund (NYDF)",
+    "tier": "ENTREPRENEUR",
+    "status": "VERIFIED-SOURCE",
+    "text": "VERIFIED-SOURCE | mof.gov.na; mfpe.gov.na; neweralive.na; namibian.com.na (2025 to 2026) Launched 29/09/2025. A loan fund, not a grant. Start-up initiatives get N$60,000 to N$200,000 at 2 percent a year; growth or project initiatives N$200,000 to N$1 million at 3 percent; larger initiatives above N$1 million at 4 percent. Repayment up to 5 years, grace up to 12 months, no collateral (financed assets can serve as security). Reported size: N$500 million overall, N$257 million for 2025/26. Delivered through DBN, Agribank and the Environmental Investment Fund; applications go through regional governors' offices or directly to these institutions. Age band is disputed: the Ministry page shows 18 to 45, while earlier reports and a Cabinet-related report say 18 to 35. The bot says 'check the current age rule with the fund'. Progress reports: about N$14.9 million approved for 30 businesses through DBN by early 2026. Agribank was reported in 07/2026 to hold N$40 million with a further N$20 million announced for young agri-businesses."
+  },
+  {
+    "id": "K5-09",
+    "title": "NIPDB SME Fund (grants)",
+    "tier": "ENTREPRENEUR",
+    "status": "VERIFIED-SOURCE",
+    "text": "VERIFIED-SOURCE | namibian.com.na 23/07/2026; neweralive.na; msmeafricaonline.com 25/07/2026 A N$18 million fund under the ProSME project (National Planning Commission, Namibia Investment Promotion and Development Board and GIZ, funded by Germany). Grants of N$50,000 to N$100,000. First cycle opened 10/06/2026 and closed 24/07/2026, with close to 200 applications by the end. Requirements: Namibian-registered, at least 51 percent Namibian ownership and control, listed on the NIPDB MSME database, compliant with BIPA, NamRA and the Social Security Commission, and able to submit a business profile and pitch deck. Priority: youth-owned (18 to 34), women-owned, social enterprises, cooperatives and export-ready firms. Application site given as smefund.nipdb.com. Whether later cycles exist: TBC; the bot says to check the site. This is a useful reason for founders to complete BIPA, NamRA and SSC compliance, which also feeds Stage 6."
+  },
+  {
+    "id": "K5-10",
+    "title": "Credit Guarantee Scheme (CGS)",
+    "tier": "ENTREPRENEUR",
+    "status": "VERIFIED-SOURCE",
+    "text": "VERIFIED-SOURCE | dbn.com.na FAQ; neweralive.na; namibian.com.na Launched 18/08/2020. The scheme gives collateral cover of up to 60 percent of the principal for SMEs judged bankable by a participating lender but lacking collateral. Seed capital N$98 million (government and Bank of Namibia). Underwritten by NASRIA, with DBN supporting claims; risk is shared among the scheme, the lender and the borrower. Apply through a participating bank, not through DBN. DBN's FAQ lists FNB and Standard Bank; Nedbank was reported joining in 11/2023 with a N$20 million portfolio guarantee, so the list needs checking. The lender may still ask for more security and sets loan limits and terms."
+  },
+  {
+    "id": "K5-11",
+    "title": "Closed or discontinued options",
+    "tier": "ENTREPRENEUR",
+    "status": "VERIFIED-SOURCE",
+    "text": "VERIFIED-SOURCE | namibian.com.na 08/04/2026; IPPR 2023; thebrief.com.na The Bank of Namibia SME Recovery Loan Scheme finished disbursing N$500 million to 433 SMEs and moved into monitoring, so it is not open. SME Bank of Namibia was liquidated, which is why DBN and the Credit Guarantee Scheme are now the main public routes. The bot never offers either as available."
+  },
+  {
+    "id": "K5-12",
+    "title": "Older micro-finance and regional schemes (verify before using)",
+    "tier": "ENTREPRENEUR",
+    "status": "UNVERIFIED",
+    "text": "UNVERIFIED (sources 2023 or older) | fli-namibia.org infohub; elidge.com A 2023 listing names: Credit for Youth in Business (National Youth Council, guarantee-based loans without collateral); Namibia Youth Credit Scheme (small loans to young Namibians); NamPro Fund (a bridging finance product for fast-growing SMEs needing short-term money to meet contract obligations, which directly overlaps with MulaStream's debt route); Erongo Development Foundation micro-credit; regional council schemes (for example Zambezi and Kavango West); Kongalend micro-loans; and the Namibia Business Innovation Institute for incubation. None of these was confirmed as active in 2026. The bot may name them only as 'schemes that have existed' and must tell users to confirm."
+  },
+  {
+    "id": "K5-13",
+    "title": "How the bot talks about alternatives",
+    "tier": "ENTREPRENEUR",
+    "status": "Design rule",
+    "text": "Design rule | derived Answer factually and neutrally. Do not say a scheme will approve the person. Point out trade-offs: grants do not need repayment but are competitive and often closed; youth loans are cheap but have age and sector rules; bank loans with the Credit Guarantee Scheme depend on the lender; MulaStream and equity routes involve investor due diligence and sharing ownership or return. Offer to help the founder prepare the documents that most of these options ask for (registration, tax and SSC compliance, bank statements, business plan, pitch deck), which are the same documents Stages 1 to 6 build."
+  },
+  {
+    "id": "K6-01",
+    "title": "Path to funding",
+    "tier": "ENTREPRENEUR",
+    "status": "CONFIRMED-PLATFORM + design",
+    "text": "CONFIRMED-PLATFORM + design Create an account and business profile, take the baseline assessment, follow the personalised 12- week incubation programme through its stages, submit evidence, pass each gate, receive the final readiness assessment and report, then submit a funding application through MulaStream, which carries out its own due diligence and approval. Approved opportunities are shown to logged-in investors."
+  },
+  {
+    "id": "K6-02",
+    "title": "The eight stages",
+    "tier": "ENTREPRENEUR",
+    "status": "CONFIRMED-PLATFORM",
+    "text": "CONFIRMED-PLATFORM Month 1: Stage 1 Business Foundation; Stage 2 Market Validation; Stage 3 Business Model Development; Stage 4 Growth Strategy and Operational Readiness. Month 2: Stage 5 Financial Readiness; Stage 6 Governance, Legal and Compliance; Stage 7 Investment Structuring and Capital Readiness. Month 3: Stage 8 Due Diligence and Investor Engagement. Each stage has sub-stages with badges; you cannot move on until all are earned and the stage is assessed as passed. Month gates also need mentor validation."
+  },
+  {
+    "id": "K6-03",
+    "title": "If an assessment is failed",
+    "tier": "ENTREPRENEUR",
+    "status": "design",
+    "text": "design You receive specific corrective actions naming what is missing, the standard, and the evidence that would fix it. You stay at your current stage, improve and resubmit. Failing is part of the process and is not a penalty."
+  },
+  {
+    "id": "K6-04",
+    "title": "Some items take longer than 90 days",
+    "tier": "ENTREPRENEUR",
+    "status": "GENERAL-EDUCATION",
+    "text": "CONFIRMED- PLATFORM Registration, licences, traction and bookkeeping history can take longer. They are tracked as conditions that must be met for investment readiness."
+  },
+  {
+    "id": "K6-05",
+    "title": "Business registration steps in Namibia (replaces v1.0)",
+    "tier": "ENTREPRENEUR",
+    "status": "VERIFIED-SOURCE",
+    "text": "VERIFIED-SOURCE (official FAQ plus secondary) | bipa.na/business-registration; namra.org.na; advisers Typical sequence: choose a structure (private company, close corporation or sole proprietor); search and reserve a name with the Business and Intellectual Property Authority (BIPA) on form CM5 (companies) or CC8 (close corporations); register the entity; get a tax number from the Namibia Revenue Agency (NamRA); register separately for PAYE if you pay salaries and for VAT when required; register with Social Security. BIPA's own FAQ gives name reservation as N$75, taking 3 working days, with a reserved name valid for 60 days, and close corporation registration taking 5 working days; company registration fees vary with share capital and directors, and a BIPA presentation hosted by NamRA gave N$465 as the minimum company registration fee (date unknown). Adviser packages and secondary sites quote other totals and timelines (for example 7 to 14 working days overall); these include professional fees and are not BIPA fees. Business-ownership information is also filed with BIPA. Rule: give the sequence, say amounts and timelines are indicative and must be confirmed with BIPA and NamRA, and quote no tax rate. Note: older v1.0 text named bipa.com.na and nra.com.na; the official pages found were bipa.na and namra.org.na. Confirm both before launch."
+  },
+  {
+    "id": "K6-07",
+    "title": "Tax figures the bot must not state",
+    "tier": "ENTREPRENEUR",
+    "status": "CONFLICT",
+    "text": "CONFLICT | namra.org.na; PwC; namiblii.org; advisers VAT registration threshold. The consolidated VAT Act text (as amended by Act 5 of 2024, signed 13/09/2024) and PwC show compulsory registration above N$1,000,000, with voluntary registration from N$200,000. NamRA's own publications and ITAS pages, and many adviser guides, still show N$500,000. Reports also differ on when the change took effect. Until NamRA confirms in writing, the bot says: 'The VAT registration threshold has changed recently and sources differ. Please confirm the current figure with NamRA.' Standard VAT rate: 15 percent, consistent across NamRA and advisers; the bot may say so with 'confirm with NamRA'. Corporate income tax: sources give 32 percent, and 30 percent falling to 28 percent; the bot states no rate."
+  },
+  {
+    "id": "K6-08",
+    "title": "E-invoicing in Namibia",
+    "tier": "ENTREPRENEUR",
+    "status": "VERIFIED-SOURCE",
+    "text": "VERIFIED-SOURCE (secondary) | KPMG 15/06/2026; vatupdate.com; edicom 21/09/2026 Namibia plans mandatory e-invoicing for VAT-registered businesses, linking business cash registers to NamRA's tax system. An April 2026 launch was dropped in the 2026/27 budget in favour of a phased rollout over about three years; as of September 2026 reports say it is not yet mandatory and no binding date is fixed. Why it matters here: invoice and purchase-order financing depends on trustworthy documents. The bot tells founders to issue proper tax invoices now and keep clean records, and says rules may change."
+  },
+  {
+    "id": "K7-01",
+    "title": "Core formulas",
+    "tier": "ENTREPRENEUR",
+    "status": "GENERAL-EDUCATION",
+    "text": "GENERAL-EDUCATION Gross margin percent = (revenue minus cost of goods) divided by revenue. Contribution margin per unit = price minus variable cost per unit. Break-even units = fixed costs divided by contribution margin per unit. CAC = sales and marketing spend divided by new customers won. LTV = average margin per customer per period multiplied by expected number of periods. LTV to CAC target is often at least 3 to 1 (rule of thumb, varies by sector). CAC payback = CAC divided by monthly margin per customer. Runway in months = cash divided by monthly net cash burn."
+  },
+  {
+    "id": "K7-02",
+    "title": "Cash flow versus profit",
+    "tier": "ENTREPRENEUR",
+    "status": "GENERAL-EDUCATION",
+    "text": "GENERAL-EDUCATION A business can be profitable on paper and still run out of cash if customers pay late or stock is bought up front. Track cash weekly. Separate business and personal money. Keep a 12-month monthly cash-flow forecast."
+  },
+  {
+    "id": "K7-03",
+    "title": "Pricing",
+    "tier": "ENTREPRENEUR",
+    "status": "GENERAL-EDUCATION",
+    "text": "GENERAL-EDUCATION Price from value to the customer and from cost, not only from competitors. Test prices with real customers. Ask: will customers pay N$X, what do they use now, what is the cheapest acceptable alternative. Consider tiers, bundles, subscriptions and minimum order sizes."
+  },
+  {
+    "id": "K7-04",
+    "title": "Record keeping",
+    "tier": "ENTREPRENEUR",
+    "status": "GENERAL-EDUCATION",
+    "text": "GENERAL-EDUCATION Invoice every sale, keep receipts, use a separate business bank account, reconcile monthly, keep copies of contracts. Good records raise your evidence confidence and your readiness score."
+  },
+  {
+    "id": "K7-05",
+    "title": "Governance basics",
+    "tier": "ENTREPRENEUR",
+    "status": "GENERAL-EDUCATION",
+    "text": "GENERAL-EDUCATION Clear ownership table, written shareholder or partner agreement, who can sign for the business, approval limits, regular financial reporting, compliance calendar for tax and statutory filings."
+  }
+]
