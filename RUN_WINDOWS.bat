@@ -7,7 +7,7 @@ if not exist ".venv\Scripts\python.exe" (
   %PYTHON% -m venv .venv
   if errorlevel 1 goto :failed
 )
-set "GEMINI_API_KEY=AQ.Ab8RN6LwtDba4vrb4S2aHp12CnhuHrote9JtoQsPzhhkgbm7RQ"
+set "GEMINI_API_KEY=YOUR_API_KEY"
 set "GEMINI_MODEL=gemini-3.5-flash-lite"
 echo Installing requirements...
 ".venv\Scripts\python.exe" -m pip install -r requirements.txt
