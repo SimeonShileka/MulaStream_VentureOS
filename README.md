@@ -91,17 +91,6 @@
 
 The platform enforces an 8-stage incubation syllabus designed to prepare early-stage enterprises for formal investment:
 
-```mermaid
-flowchart LR
-    S1["1. Business Foundation"] --> S2["2. Market Validation"]
-    S2 --> S3["3. Business Model Dev"]
-    S3 --> S4["4. Growth Strategy"]
-    S4 --> S5["5. Financial Readiness"]
-    S5 --> S6["6. Governance & Legal"]
-    S6 --> S7["7. Capital Structuring"]
-    S7 --> S8["8. Due Diligence"]
-```
-
 - **Stage 1: Business Foundation** (Month 1): Concept note, problem statement, value proposition, founder profiles, ownership structure, and banking prerequisites.
 - **Stage 2: Market Validation** (Month 1): Market research, customer interviews, competitor benchmarking, MVP testing, and early traction/letters of intent.
 - **Stage 3: Business Model Development** (Month 1): Business Model Canvas (BMC), pricing strategy, unit economics, customer acquisition cost (CAC), and break-even calculations.
